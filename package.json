@@ -1,0 +1,19 @@
+{
+  "name": "crawl",
+  "version": "1.0.0",
+  "description": "Crawls websites to determine broken links and images.",
+  "main": "app.js",
+  "scripts": {
+    "crawl": "node crawl.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=6.12.1 <7.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": [
+    "winston",
+    "lodash"
+  ]
+}
