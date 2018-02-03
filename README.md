@@ -23,3 +23,8 @@ crawler
 
 ## Testing
 
+This uses Mocha and Chai with the `expect` syntax. To run tests:
+
+```
+npm test
+```
