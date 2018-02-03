@@ -16,7 +16,7 @@ command
     new Crawler({
       url: site,
       concurrency: 10,
-      crawlDomains: cmd.domains
+      crawlDomains: cmd.domains || []
     })
       .registerOutputHandler(new TextOutputHandler({
         title: site
