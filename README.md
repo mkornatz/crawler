@@ -1,5 +1,5 @@
 # Crawler
-A site crawler
+A site crawler to expose crawling errors on a site.
 
 ## Events
 
@@ -20,4 +20,6 @@ crawler
   .on('crawl', (url, res, $, next) => { next() })
   .on('found', (url, next) => { next() })
 ```
+
+## Testing
 
