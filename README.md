@@ -28,3 +28,9 @@ This uses Mocha and Chai with the `expect` syntax. To run tests:
 ```
 npm test
 ```
+
+
+## TODO
+
+- Use `Accept-Encoding: gzip, deflate, br` to mimic browser (LinkedIn 999 error)
+-
