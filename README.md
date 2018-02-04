@@ -33,4 +33,5 @@ npm test
 ## TODO
 
 - Use `Accept-Encoding: gzip, deflate, br` to mimic browser (LinkedIn 999 error)
--
+- Handle UTF8 chars in URLs
+- Utilize the baseUrl tags in pages
