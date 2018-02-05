@@ -1,24 +1,39 @@
 # Crawler
 A site crawler to expose crawling errors on a site.
 
+## Install
+
+```
+npm install
+```
+
+## Run
+
+```
+node crawler.js https://example.com
+```
+
 ## Events
 
 - `found` - Fires when a URL was found in parsing a page
-- `crawl` - Fires after a page is parsed and before scraping for more URLs
 - `success` - Fires when a URL was successfully loaded (HTTP 200-399 response)
 - `error` - Fires when a URL fails to load (HTTP 400+ response)
+- `complete` - Fires when the crawling is finished
 
 ```
 crawler
-  .on('success', (url, res) => {
-    console.log(`${url} was succcessfully loaded`)
+  .on('success', (url, parentUrl, response) => {
+    console.log(`${url} was succcessfully loaded on ${parentUrl}`)
     })
-  .on('error', (url, err, res) => {
-    console.log(`${url} failed to load`)
+  .on('error', (url, parentUrl, err, response) => {
+    console.log(`${url} failed to load on ${parentUrl}`, err)
     })
-  .on('complete', () => {})
-  .on('crawl', (url, res, $, next) => { next() })
-  .on('found', (url, next) => { next() })
+  .on('complete', () => {
+    // all done
+    })
+  .on('found', (url, parentUrl) => {
+    console.log(`${url} was found on ${parentUrl} but not yet requested or crawled`)
+    })
 ```
 
 ## Testing
@@ -35,6 +50,7 @@ npm test
 - Use `Accept-Encoding: gzip, deflate, br` to mimic browser (LinkedIn 999 error)
 - Handle UTF8 chars in URLs
 - Utilize the baseUrl tags in pages
+- Output content type in text output handler
 
 
 ## Similar projects
