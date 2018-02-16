@@ -19,6 +19,7 @@ node crawler.js https://example.com
 - `success` - Fires when a URL was successfully loaded (HTTP 200-399 response)
 - `error` - Fires when a URL fails to load (HTTP 400+ response)
 - `complete` - Fires when the crawling is finished
+- `crawl` - Fires when the crawler is beginning to crawl a URL
 
 ```
 crawler
@@ -33,6 +34,9 @@ crawler
     })
   .on('found', (url, parentUrl) => {
     console.log(`${url} was found on ${parentUrl} but not yet requested or crawled`)
+    })
+  .on('crawl', (url) => {
+    console.log(`beginning to crawl ${url}`)
     })
 ```
 
