@@ -1,0 +1,5 @@
+--require chai/register-expect
+--ui bdd
+--timeout 200
+--require ./test/setup
+test/**/*.spec.js
