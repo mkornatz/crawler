@@ -16,7 +16,7 @@ npm run crawl https://example.com
 
 ## Developing
 
-## Custom Output Handler
+### Custom Output Handler
 
 The crawler instance fires off events to be handled by the output handler.
 
