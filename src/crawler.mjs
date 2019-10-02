@@ -1,51 +1,44 @@
-const async = require('async');
-const request = require('request');
-const cheerio = require('cheerio');
-const Url = require('url');
-const UrlParser = require('url-parse');
-const EventEmitter = require('events').EventEmitter;
-const _ = require('lodash');
+import async from 'async';
+import request from 'request';
+import cheerio from 'cheerio';
+import Url from 'url';
+import UrlParser from 'url-parse';
+import {EventEmitter} from 'events';
+import _ from 'lodash';
 
-const Crawler = function(options) {
-  const self = this;
+/**
+ * The main crawler class that can crawl URLs
+ */
+export default class Crawler {
+  constructor(options) {
+    const self = this;
 
-  self.options = _.defaults(options, {
-    concurrency: 10,
-    url: null,
-    crawlDomains: [],
-  });
+    self.options = _.defaults(options, {
+      concurrency: 10,
+      url: null,
+      crawlDomains: [],
+    });
 
-  if (_.isEmpty(self.options.url)) {
-    throw new Error('You must specify a URL to crawl.');
+    if (_.isEmpty(self.options.url)) {
+      throw new Error('You must specify a URL to crawl.');
+    }
+
+    self.queued = 0;
+    self.completed = 0;
+    self.foundUrls = [];
+    self.domains = [];
+    self.userAgent =
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36';
+
+    // Add the url domain and other allowed domains to
+    // be crawled
+    const parsedUrl = new UrlParser(self.options.url);
+    self.addDomainToCrawl(parsedUrl.host);
+    _.each(self.options.crawlDomains, self.addDomainToCrawl.bind(this));
+
+    self.crawlingQueue = async.queue(self._task.bind(self), self.options.concurrency);
+    self.emitter = new EventEmitter();
   }
-
-  self.queued = 0;
-  self.completed = 0;
-  self.foundUrls = [];
-  self.domains = [];
-  self.userAgent =
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36';
-
-  // Add the url domain and other allowed domains to
-  // be crawled
-  const parsedUrl = new UrlParser(self.options.url);
-  self.addDomainToCrawl(parsedUrl.host);
-  _.each(self.options.crawlDomains, self.addDomainToCrawl.bind(this));
-
-  self.crawler = async.queue(self._task.bind(self), self.options.concurrency);
-  self.emitter = new EventEmitter();
-};
-
-Crawler.prototype = _.extend(Crawler.prototype, {
-  /**
-   * Registers an output handler for the crawl to respond to events
-   * @param  {OutputHandler} handler
-   * @return {Crawler}
-   */
-  registerOutputHandler(handler) {
-    handler.register(this);
-    return this;
-  },
 
   /**
    * Adds a domain to the list of allowed domains to crawl. URLs found
@@ -55,17 +48,17 @@ Crawler.prototype = _.extend(Crawler.prototype, {
    */
   addDomainToCrawl(domain) {
     this.domains.push(domain);
-  },
+  }
 
   /**
-   * Determins if url should be crawled based on domain
+   * Determines if url should be crawled based on domain
    * @param  {Response} response object
    * @return {bool}
    */
-  shouldCrawl(res) {
+  shouldCrawlDomain(res) {
     const uri = res.request.uri.href;
 
-    // only crawl pages if the scheme is http
+    // only crawl pages if the scheme is http(s)
     if (uri.indexOf('http://') < 0 && uri.indexOf('https://') < 0) {
       return false;
     }
@@ -76,8 +69,8 @@ Crawler.prototype = _.extend(Crawler.prototype, {
 
     const parsedUrl = new UrlParser(uri);
 
-    return _.findIndex(this.domains, domain => domain === parsedUrl.host) > -1;
-  },
+    return _.indexOf(this.domains, parsedUrl.host) > -1;
+  }
 
   /**
    * Sets a listener for an event
@@ -85,18 +78,19 @@ Crawler.prototype = _.extend(Crawler.prototype, {
   on(type, listener) {
     this.emitter.on(type, listener);
     return this;
-  },
+  }
 
   /**
    * Starts the crawling process
    */
   start() {
     var self = this;
+    self.emitter.emit('crawl', self.options.url);
     self.queued = 1;
-    self.crawler.push({
+    self.crawlingQueue.push({
       url: self.options.url,
     });
-  },
+  }
 
   /**
    * The main crawl handler for the async crawl process
@@ -136,7 +130,7 @@ Crawler.prototype = _.extend(Crawler.prototype, {
         }
 
         // Prevent crawling if we shouldn't
-        if (self.shouldCrawl(response)) {
+        if (self.shouldCrawlDomain(response)) {
           self.emitter.emit('crawl', task.url);
 
           var $ = cheerio.load(body);
@@ -175,7 +169,7 @@ Crawler.prototype = _.extend(Crawler.prototype, {
         }
       })
       .setMaxListeners(0);
-  },
+  }
 
   /**
    * Resolves an absolute or relative URL into an absolute URL
@@ -196,7 +190,7 @@ Crawler.prototype = _.extend(Crawler.prototype, {
     }
 
     return [parsedUrl.protocol, '//', parsedUrl.host, parsedUrl.pathname, parsedUrl.query].join('');
-  },
+  }
 
   /**
    * Emits a `found` event which can determine whether or not the url
@@ -221,11 +215,9 @@ Crawler.prototype = _.extend(Crawler.prototype, {
     this.queued++;
     this.foundUrls.push(found);
 
-    this.crawler.push({
+    this.crawlingQueue.push({
       url: found,
       parentUrl: options.foundAtUrl,
     });
-  },
-});
-
-module.exports = Crawler;
+  }
+}

@@ -1,6 +1,6 @@
 import command from 'commander';
-import Crawler from './lib/crawler.js';
-import TextOutputHandler from './lib/output-handlers/text-output-handler.js';
+import Crawler from './src/crawler.mjs';
+import ConsoleOutputHandler from './src/output-handlers/console.mjs';
 
 function list(val) {
   return val.split(',');
@@ -8,21 +8,20 @@ function list(val) {
 
 command
   .version('1.0.0')
-  .usage('<site>')
+  .usage('<url>')
   .option('-d, --domains <domains>', 'A comma-separated list of domains to include in crawling', list)
   // .option('-i, --images', 'Whether to include images in the report')
   // .option('-f, --format <format>', 'Output format', 'text')
-  .action(function(site, cmd) {
-    new Crawler({
-      url: site,
+  .action(function(url, cmd) {
+    const crawler = new Crawler({
+      url,
       concurrency: 10,
       crawlDomains: cmd.domains || [],
-    })
-      .registerOutputHandler(
-        new TextOutputHandler({
-          title: site,
-        })
-      )
-      .start();
+    });
+
+    // Add an output handler that listens to crawler events
+    new ConsoleOutputHandler(crawler);
+
+    crawler.start();
   })
   .parse(process.argv);

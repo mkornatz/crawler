@@ -1,18 +1,18 @@
 {
   "name": "crawl",
   "version": "1.0.0",
-  "description": "Crawls websites to determine broken links and images.",
-  "main": "app.js",
-  "scripts": {
-    "crawl": "node crawl.js",
-    "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
-    "test": "./node_modules/mocha/bin/mocha --opts mocha.opts"
-  },
+  "description": "A CLI tool to crawl websites and determine broken links.",
+  "author": "Matt Kornatz <matt@mkornatz.com>",
+  "license": "MIT",
+  "main": "crawler.mjs",
   "engines": {
     "node": ">=12.11.1 <13"
   },
-  "author": "Matt Kornatz <matt@mkornatz.com>",
-  "license": "MIT",
+  "scripts": {
+    "crawl": "node --experimental-modules crawler.mjs",
+    "prettier": "prettier --write \"**/*.{js,jsx,json,md}\"",
+    "test": "./node_modules/mocha/bin/mocha --opts mocha.opts"
+  },
   "dependencies": {
     "async": "^2.6.3",
     "cheerio": "^1.0.0-rc.3",

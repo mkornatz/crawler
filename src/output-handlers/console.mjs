@@ -2,25 +2,18 @@ import winston from 'winston';
 import _ from 'lodash';
 
 /**
- * A text based output handler, which listens to events from crawler and displays results to the console.
+ * A console based output handler, which listens to events from crawler and displays results to the console.
  * @param {} options
  */
-export class TextOutputHandler {
-  constructor(options) {
-    this.options = _.extend(
-      {
-        title: null,
-      },
-      options
-    );
-
+export default class ConsoleOutputHandler {
+  constructor(crawler) {
     winston.addColors({
       ok: 'blue',
       status: 'yellow',
       error: 'red',
     });
 
-    this.logger = new winston.Logger({
+    this.logger = new winston.createLogger({
       levels: {
         ok: 0,
         status: 1,
@@ -29,11 +22,6 @@ export class TextOutputHandler {
       transports: [new winston.transports.Console({ level: 'error', colorize: true })],
     });
 
-    this.logger.status('Crawl Log for', this.options.title, '...');
-  }
-
-  // Registers the output handler with the crawler instance
-  register(crawler) {
     crawler
       .on('success', this.success.bind(this))
       .on('error', this.error.bind(this))
@@ -44,7 +32,7 @@ export class TextOutputHandler {
 
   // Handles "success" event
   success(url, parentUrl, res) {
-    this.logger.ok(url, '[' + parentUrl + ']', res.headers['content-type'], res.headers['content-length'], 'bytes');
+    this.logger.ok(url, `[${parentUrl}] ${res.headers['content-type']} ${res.headers['content-length']} bytes`);
   }
 
   // Handles "complete" event
@@ -57,7 +45,7 @@ export class TextOutputHandler {
     if (_.isEmpty(res)) {
       this.logger.error('Response is empty', err);
     } else {
-      this.logger.error('[', res.statusCode, ']', url, '[' + parentUrl + ']');
+      this.logger.error(`[${res.statusCode}] ${url} (found at ${parentUrl})`);
     }
   }
 
@@ -68,6 +56,6 @@ export class TextOutputHandler {
 
   // Handles "crawl" event
   crawl(url) {
-    // this.logger.status('crawling', url)
+    this.logger.status(`Starting to crawl ${url}`);
   }
 }
