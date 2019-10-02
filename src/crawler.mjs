@@ -26,6 +26,7 @@ export default class Crawler {
     self.queued = 0;
     self.completed = 0;
     self.foundUrls = [];
+    self.crawledUrls = [];
     self.domains = [];
     self.userAgent =
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36';
@@ -55,7 +56,7 @@ export default class Crawler {
    * @param  {Response} response object
    * @return {bool}
    */
-  shouldCrawlDomain(res) {
+  shouldCrawl(res) {
     const uri = res.request.uri.href;
 
     // only crawl pages if the scheme is http(s)
@@ -69,7 +70,12 @@ export default class Crawler {
 
     const parsedUrl = new UrlParser(uri);
 
-    return _.indexOf(this.domains, parsedUrl.host) > -1;
+    // Is domain allowed?
+    if (_.indexOf(this.domains, parsedUrl.host) === -1){
+      return false;
+    }
+
+    return this.crawledUrls.indexOf(uri) === -1;
   }
 
   /**
@@ -130,8 +136,12 @@ export default class Crawler {
         }
 
         // Prevent crawling if we shouldn't
-        if (self.shouldCrawlDomain(response)) {
+        if (self.shouldCrawl(response)) {
           self.emitter.emit('crawl', task.url);
+
+          // Add this to the list of crawled URLs prior to parsing to avoid
+          // duplicate crawlers in a race condition
+          self.crawledUrls.push(task.url);
 
           var $ = cheerio.load(body);
 
@@ -219,5 +229,13 @@ export default class Crawler {
       url: found,
       parentUrl: options.foundAtUrl,
     });
+  }
+
+  /**
+   * Determines if a URL has already been crawled
+   * @param url
+   */
+  alreadyCrawled(url) {
+    return this.crawlDomains.indexOf(url) >= 0;
   }
 }
