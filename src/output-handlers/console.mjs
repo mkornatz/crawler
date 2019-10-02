@@ -42,7 +42,9 @@ export default class ConsoleOutputHandler {
 
   // Handles "success" event
   success(url, parentUrl, res) {
-    this.logger.ok(`${url} (found at ${parentUrl}) ${res.headers['content-type']} ${res.headers['content-length']} bytes`);
+    this.logger.ok(
+      `${url} (found at ${parentUrl}) ${res.headers['content-type']} ${res.headers['content-length']} bytes`
+    );
   }
 
   // Handles "complete" event
@@ -61,7 +63,7 @@ export default class ConsoleOutputHandler {
 
   // Handles "found" event
   found(url, foundAtUrl) {
-    this.logger.status(`found URL ${url} at URL ${foundAtUrl}`)
+    this.logger.status(`found URL ${url} at URL ${foundAtUrl}`);
   }
 
   // Handles "crawl" event
