@@ -7,7 +7,7 @@ import {EventEmitter} from 'events';
 import _ from 'lodash';
 
 /**
- * The main crawler class that can crawl URLs
+ * The main crawling state manager.
  */
 export default class Crawler {
   constructor(options) {
@@ -27,15 +27,16 @@ export default class Crawler {
     self.completed = 0;
     self.foundUrls = [];
     self.crawledUrls = [];
-    self.domains = [];
+    self.allowedDomains = [];
     self.userAgent =
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36';
 
-    // Add the url domain and other allowed domains to
-    // be crawled
+    // Add the url domain and other allowed domains to be crawled
     const parsedUrl = new UrlParser(self.options.url);
-    self.addDomainToCrawl(parsedUrl.host);
-    _.each(self.options.crawlDomains, self.addDomainToCrawl.bind(this));
+    self.allowCrawlingForDomain(parsedUrl.host);
+
+    // Add other allowed domains
+    _.each(self.options.crawlDomains, self.allowCrawlingForDomain.bind(this));
 
     self.crawlingQueue = async.queue(self._task.bind(self), self.options.concurrency);
     self.emitter = new EventEmitter();
@@ -47,8 +48,8 @@ export default class Crawler {
    * crawled for more URLs.
    * @param {string} domain
    */
-  addDomainToCrawl(domain) {
-    this.domains.push(domain);
+  allowCrawlingForDomain(domain) {
+    this.allowedDomains.push(domain);
   }
 
   /**
@@ -71,7 +72,7 @@ export default class Crawler {
     const parsedUrl = new UrlParser(uri);
 
     // Is domain allowed?
-    if (_.indexOf(this.domains, parsedUrl.host) === -1){
+    if (_.indexOf(this.allowedDomains, parsedUrl.host) === -1){
       return false;
     }
 
@@ -227,14 +228,5 @@ export default class Crawler {
       url: found,
       parentUrl: options.foundAtUrl,
     });
-  }
-
-  /**
-   * Determines if a URL has already been crawled
-   * @param url
-   */
-  alreadyCrawled(url) {
-    console.log(this.crawlDomains, url);
-    return this.crawlDomains.indexOf(url) >= 0;
   }
 }

@@ -11,7 +11,7 @@ npm install
 ## Run
 
 ```
-node crawler.js https://example.com
+npm run crawl https://example.com
 ```
 
 ## Events
