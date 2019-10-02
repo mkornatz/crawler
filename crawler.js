@@ -1,30 +1,26 @@
-const command = require("commander");
-const Crawler = require("./lib/crawler.js");
-const TextOutputHandler = require("./lib/output-handlers/text-output-handler.js");
+import command from 'commander';
+import Crawler from './lib/crawler.js';
+import TextOutputHandler from './lib/output-handlers/text-output-handler.js';
 
 function list(val) {
-  return val.split(",");
+  return val.split(',');
 }
 
 command
-  .version("1.0.0")
-  .usage("<site>")
-  .option(
-    "-d, --domains <domains>",
-    "A comma-separated list of domains to include in crawling",
-    list
-  )
+  .version('1.0.0')
+  .usage('<site>')
+  .option('-d, --domains <domains>', 'A comma-separated list of domains to include in crawling', list)
   // .option('-i, --images', 'Whether to include images in the report')
   // .option('-f, --format <format>', 'Output format', 'text')
   .action(function(site, cmd) {
     new Crawler({
       url: site,
       concurrency: 10,
-      crawlDomains: cmd.domains || []
+      crawlDomains: cmd.domains || [],
     })
       .registerOutputHandler(
         new TextOutputHandler({
-          title: site
+          title: site,
         })
       )
       .start();

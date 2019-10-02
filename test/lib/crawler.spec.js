@@ -1,11 +1,11 @@
-const Crawler = require("../../lib/crawler");
+const Crawler = require('../../lib/crawler');
 
-const baseUrl = "http://localhost:5252";
+const baseUrl = 'http://localhost:5252';
 
-describe("crawler", function() {
+describe('crawler', function() {
   before(done => {
     global.server.start(() => {
-      console.log("Test server listening on", global.server.port);
+      console.log('Test server listening on', global.server.port);
       done();
     });
   });
@@ -15,12 +15,12 @@ describe("crawler", function() {
     done();
   });
 
-  it("starts", function(done) {
+  it('starts', function(done) {
     new Crawler({
-      url: baseUrl + "/pages/with_base_href.html"
+      url: baseUrl + '/pages/with_base_href.html',
     })
-      .on("error", () => {})
-      .on("complete", done)
+      .on('error', () => {})
+      .on('complete', done)
       .start();
   });
 });
