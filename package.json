@@ -10,7 +10,7 @@
   },
   "scripts": {
     "crawl": "node --experimental-modules crawler.mjs",
-    "prettier": "prettier --write \"**/*.{js,jsx,json,md}\"",
+    "prettier": "prettier --write \"**/*.{mjs,js,jsx,json,md}\"",
     "test": "./node_modules/mocha/bin/mocha --opts mocha.opts"
   },
   "dependencies": {
