@@ -1,12 +1,11 @@
 const Crawler = require('../../lib/crawler')
-const TextOutputHandler = require('../../lib/output-handlers/text-output-handler')
 
-const PORT = '5252'
+const baseUrl = 'http://localhost:5252'
 
 describe('crawler', function () {
   before((done) => {
     global.server.start(() => {
-      console.log('Server listening to', global.server.port)
+      console.log('Test server listening on', global.server.port)
       done()
     })
   })
@@ -16,13 +15,13 @@ describe('crawler', function () {
     done()
   })
 
-  it('should be able to execute a test', function (done) {
+  it('starts', function (done) {
     new Crawler({
-      url: 'http://localhost:' + PORT
+      url: baseUrl + '/pages/with_base_href.html'
     })
-      .registerOutputHandler(new TextOutputHandler({
-        title: 'test'
-      }))
+      .on('error', () => {
+
+      })
       .on('complete', done)
       .start()
   })
