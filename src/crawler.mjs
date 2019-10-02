@@ -3,7 +3,7 @@ import request from 'request';
 import cheerio from 'cheerio';
 import Url from 'url';
 import UrlParser from 'url-parse';
-import {EventEmitter} from 'events';
+import { EventEmitter } from 'events';
 import _ from 'lodash';
 
 /**
@@ -72,7 +72,7 @@ export default class Crawler {
     const parsedUrl = new UrlParser(uri);
 
     // Is domain allowed?
-    if (_.indexOf(this.allowedDomains, parsedUrl.host) === -1){
+    if (_.indexOf(this.allowedDomains, parsedUrl.host) === -1) {
       return false;
     }
 

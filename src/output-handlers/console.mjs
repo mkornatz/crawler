@@ -17,20 +17,19 @@ export default class ConsoleOutputHandler {
         ok: 'blue',
         status: 'yellow',
         error: 'red',
-      }
+      },
     };
 
     winston.addColors(logLevelsAndColors);
 
     this.logger = new winston.createLogger({
       levels: logLevelsAndColors.levels,
-      transports: [new winston.transports.Console({
-        level: 'error',
-        format: winston.format.combine(
-          winston.format.colorize(),
-          winston.format.simple()
-        ),
-      })],
+      transports: [
+        new winston.transports.Console({
+          level: 'error',
+          format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+        }),
+      ],
     });
 
     crawler
@@ -43,7 +42,7 @@ export default class ConsoleOutputHandler {
 
   // Handles "success" event
   success(url, parentUrl, res) {
-    this.logger.ok(url, `[${parentUrl}] ${res.headers['content-type']} ${res.headers['content-length']} bytes`);
+    this.logger.ok(`${url} (found at ${parentUrl}) ${res.headers['content-type']} ${res.headers['content-length']} bytes`);
   }
 
   // Handles "complete" event
@@ -62,7 +61,7 @@ export default class ConsoleOutputHandler {
 
   // Handles "found" event
   found(url, foundAtUrl) {
-    // this.logger.status(`found ${url} at ${foundAtUrl}`)
+    this.logger.status(`found URL ${url} at URL ${foundAtUrl}`)
   }
 
   // Handles "crawl" event
