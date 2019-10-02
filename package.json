@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "crawl": "node crawl.js",
+    "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
     "test": "./node_modules/mocha/bin/mocha --opts mocha.opts"
   },
   "engines": {
@@ -32,6 +33,7 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
     "mocha": "^5.0.0",
+    "prettier": "^1.18.2",
     "static-server": "^3.0.0"
   }
 }
