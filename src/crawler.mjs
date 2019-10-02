@@ -91,7 +91,6 @@ export default class Crawler {
    */
   start() {
     var self = this;
-    self.emitter.emit('crawl', self.options.url);
     self.queued = 1;
     self.crawlingQueue.push({
       url: self.options.url,
@@ -139,10 +138,6 @@ export default class Crawler {
         if (self.shouldCrawl(response)) {
           self.emitter.emit('crawl', task.url);
 
-          // Add this to the list of crawled URLs prior to parsing to avoid
-          // duplicate crawlers in a race condition
-          self.crawledUrls.push(task.url);
-
           var $ = cheerio.load(body);
 
           const baseHref = $('base').attr('href');
@@ -171,6 +166,9 @@ export default class Crawler {
             });
           });
         }
+
+        // Add this to the list of crawled URLs
+        self.crawledUrls.push(task.url);
 
         self.completed++;
         callback();
@@ -236,6 +234,7 @@ export default class Crawler {
    * @param url
    */
   alreadyCrawled(url) {
+    console.log(this.crawlDomains, url);
     return this.crawlDomains.indexOf(url) >= 0;
   }
 }

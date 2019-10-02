@@ -7,19 +7,30 @@ import _ from 'lodash';
  */
 export default class ConsoleOutputHandler {
   constructor(crawler) {
-    winston.addColors({
-      ok: 'blue',
-      status: 'yellow',
-      error: 'red',
-    });
-
-    this.logger = new winston.createLogger({
+    const logLevelsAndColors = {
       levels: {
         ok: 0,
         status: 1,
         error: 2,
       },
-      transports: [new winston.transports.Console({ level: 'error', colorize: true })],
+      colors: {
+        ok: 'blue',
+        status: 'yellow',
+        error: 'red',
+      }
+    };
+
+    winston.addColors(logLevelsAndColors);
+
+    this.logger = new winston.createLogger({
+      levels: logLevelsAndColors.levels,
+      transports: [new winston.transports.Console({
+        level: 'error',
+        format: winston.format.combine(
+          winston.format.colorize(),
+          winston.format.simple()
+        ),
+      })],
     });
 
     crawler
