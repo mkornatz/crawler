@@ -16,8 +16,8 @@ export default class ConsoleOutputHandler {
       colors: {
         ok: 'blue',
         status: 'yellow',
-        error: 'red'
-      }
+        error: 'red',
+      },
     };
 
     winston.addColors(logLevelsAndColors);

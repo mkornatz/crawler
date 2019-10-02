@@ -11,7 +11,8 @@
   "scripts": {
     "crawl": "node --experimental-modules crawler.mjs",
     "prettier": "prettier --write \"**/*.{mjs,js,jsx,json,md}\"",
-    "test": "./node_modules/mocha/bin/mocha --opts mocha.opts"
+    "test": "./node_modules/mocha/bin/mocha --opts mocha.opts",
+    "precommit": "lint-staged"
   },
   "dependencies": {
     "async": "^2.6.3",
@@ -35,11 +36,6 @@
     "mocha": "^5.0.0",
     "prettier": "^1.18.2",
     "static-server": "^3.0.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run prettier"
-    }
   },
   "lint-staged": {
     "*.{mjs,js,json}": [
