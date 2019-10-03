@@ -1,4 +1,4 @@
-import Crawler from '../../lib/crawler.mjs';
+import Crawler from '../../src/crawler';
 
 const baseUrl = 'http://localhost:5252';
 

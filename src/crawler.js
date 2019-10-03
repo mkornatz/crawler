@@ -46,7 +46,6 @@ export default class Crawler extends EventEmitter {
 
     // Binds an async queue to the runTask method
     self.crawlingQueue = async.queue(self.runTask.bind(self), self.options.concurrency);
-    self = new EventEmitter();
   }
 
   /**
@@ -144,7 +143,7 @@ export default class Crawler extends EventEmitter {
 
           $('a[href], link[href]').each((index, el) => {
             var href = $(el).attr('href');
-            if (_.isEmpty(href)) {
+            if (isEmpty(href)) {
               return;
             }
             self.handleFoundUrl({
@@ -156,7 +155,7 @@ export default class Crawler extends EventEmitter {
 
           $('img[src], script[src]').each((index, el) => {
             var src = $(el).attr('src');
-            if (_.isEmpty(src)) {
+            if (isEmpty(src)) {
               return;
             }
             self.handleFoundUrl({

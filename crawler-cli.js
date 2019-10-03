@@ -1,6 +1,6 @@
 import command from 'commander';
-import Crawler from './src/crawler.mjs';
-import ConsoleOutputHandler from './src/output-handlers/console.mjs';
+import Crawler from './src/crawler';
+import ConsoleOutputHandler from './src/output-handlers/console';
 
 function list(val) {
   return val.split(',');

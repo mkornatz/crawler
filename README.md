@@ -29,20 +29,20 @@ The crawler instance fires off events to be handled by the output handler.
 ```js
 crawler
   .on('success', (url, parentUrl, response) => {
-    console.log(`${url} was succcessfully loaded on ${parentUrl}`)
+    console.log(`${url} was succcessfully loaded on ${parentUrl}`);
   })
   .on('error', (url, parentUrl, err, response) => {
-    console.log(`${url} failed to load on ${parentUrl}`, err)
+    console.log(`${url} failed to load on ${parentUrl}`, err);
   })
   .on('complete', () => {
     console.log('Finished crawling!');
   })
   .on('found', (url, parentUrl) => {
-    console.log(`${url} was found on ${parentUrl} but not yet requested or crawled`)
+    console.log(`${url} was found on ${parentUrl} but not yet requested or crawled`);
   })
-  .on('crawl', (url) => {
-    console.log(`beginning to crawl ${url}`)
-  })
+  .on('crawl', url => {
+    console.log(`beginning to crawl ${url}`);
+  });
 ```
 
 ## Testing
