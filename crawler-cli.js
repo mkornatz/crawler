@@ -1,20 +1,18 @@
 import command from 'commander';
 import Crawler from './src/crawler';
 import ConsoleOutputHandler from './src/output-handlers/console';
-
-function csvToArray(val) {
-  return val.split(',');
-}
+import { csvToArray } from './src/utils/string';
 
 command
   .version('1.0.0')
   .usage('<url>')
-  .option('-d, --domains <domains>', 'A comma-separated list of domains to include in crawling', csvToArray)
+  .option('-d, --domains <domains>', 'comma-separated list of domains to allow in crawling', csvToArray)
+  .option('-c, --concurrency <integer>', 'number of crawler threads to allow concurrently', parseInt)
   // .option('-i, --images', 'Whether to include images in the report')
   // .option('-f, --format <format>', 'Output format', 'text')
   .action(function(url, cmd) {
     const crawler = new Crawler(url, {
-      concurrency: 10,
+      concurrency: cmd.concurrency || 10,
       crawlDomains: cmd.domains || [],
     });
 

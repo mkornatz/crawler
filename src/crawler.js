@@ -18,34 +18,31 @@ const defaultOptions = {
  */
 export default class Crawler extends EventEmitter {
   constructor(url, options) {
-    super(); // Must call for this to be defined
-
-    const self = this;
-
-    self.options = defaults(options, defaultOptions);
-
     if (isEmpty(url) || url === '') {
       throw new Error('You must specify a URL to crawl.');
     }
 
-    self.url = url;
-    self.queued = 0;
-    self.completed = 0;
-    self.foundUrls = [];
-    self.crawledUrls = [];
-    self.allowedDomains = [];
+    super(); // Must call for this to be defined
+
+    this.url = url;
+    this.queued = 0;
+    this.completed = 0;
+    this.foundUrls = [];
+    this.crawledUrls = [];
+    this.allowedDomains = [];
+    this.options = defaults(options, defaultOptions);
 
     // Add the initial URL's domain to the allowed domains
-    const parsedUrl = new UrlParser(self.url);
-    self.allowCrawlingForDomain(parsedUrl.host);
+    const parsedUrl = new UrlParser(this.url);
+    this.allowCrawlingForDomain(parsedUrl.host);
 
     // Add other configured allowed domains
-    if (isArray(self.options.allowedDomains)) {
-      self.options.allowedDomains.forEach(self.allowCrawlingForDomain.bind(this));
+    if (isArray(this.options.allowedDomains)) {
+      this.options.allowedDomains.forEach(this.allowCrawlingForDomain.bind(this));
     }
 
     // Binds an async queue to the runTask method
-    self.crawlingQueue = async.queue(self.runTask.bind(self), self.options.concurrency);
+    this.crawlingQueue = async.queue(this.runTask.bind(this), this.options.concurrency);
   }
 
   /**
