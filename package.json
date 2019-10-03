@@ -11,8 +11,13 @@
   "scripts": {
     "crawl": "node -r esm index.js",
     "prettier": "prettier --write \"**/*.{mjs,js,jsx,json,md}\"",
-    "test": "mocha --opts mocha.opts",
-    "precommit": "lint-staged"
+    "test": "mocha --opts mocha.opts"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint-staged",
+      "pre-push": "npm test"
+    }
   },
   "dependencies": {
     "async": "^2.6.3",
