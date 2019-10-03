@@ -1,7 +1,7 @@
 import command from 'commander';
-import Crawler from './src/crawler';
-import ConsoleOutputHandler from './src/output-handlers/console';
-import { csvToArray } from './src/utils/string';
+import Crawler from './crawler';
+import ConsoleOutputHandler from './output-handlers/console';
+import { csvToArray } from './utils/string';
 
 command
   .version('1.0.0')

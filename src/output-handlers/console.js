@@ -10,12 +10,16 @@ export default class ConsoleOutputHandler {
     const logLevelsAndColors = {
       levels: {
         ok: 0,
+        crawl: 1,
+        found: 1,
         status: 1,
         error: 2,
       },
       colors: {
         ok: 'blue',
-        status: 'yellow',
+        crawl: 'green',
+        found: 'yellow',
+        status: 'white',
         error: 'red',
       },
     };
@@ -49,7 +53,7 @@ export default class ConsoleOutputHandler {
 
   // Handles "complete" event
   complete() {
-    this.logger.status('finished crawling all URLs.');
+    this.logger.status('Finished crawling all URLs.');
   }
 
   // Handles "error" event
@@ -63,11 +67,11 @@ export default class ConsoleOutputHandler {
 
   // Handles "found" event
   found(url, foundAtUrl) {
-    this.logger.status(`found URL ${url} at URL ${foundAtUrl}`);
+    this.logger.found(`${url} (at ${foundAtUrl})`);
   }
 
   // Handles "crawl" event
   crawl(url) {
-    this.logger.status(`Starting to crawl ${url}`);
+    this.logger.crawl(`Crawling ${url}`);
   }
 }

@@ -219,11 +219,6 @@ export default class Crawler extends EventEmitter {
       return;
     }
 
-    // Don't "find" a url that we've already found
-    if (this.foundUrls.indexOf(found) >= 0) {
-      return;
-    }
-
     this.emit('found', found, options.foundAtUrl);
     this.foundUrls.push(found);
 

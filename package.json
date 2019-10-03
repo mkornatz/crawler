@@ -5,6 +5,9 @@
   "author": "Matt Kornatz <matt@mkornatz.com>",
   "license": "MIT",
   "main": "index.js",
+  "bin": {
+    "crawl": "index-cli.js"
+  },
   "engines": {
     "node": ">=12.11.1 <13"
   },

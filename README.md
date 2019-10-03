@@ -1,17 +1,17 @@
 # Crawler
 
-A site crawler to expose crawling errors on a site.
+A website crawler library with a built-in CLI tool to help expose bad URLs on a page or site.
 
 ## Install
 
 ```bash
-npm install
+npm install && npm link
 ```
 
-## Run
+## Using the CLI Tool
 
 ```bash
-npm run crawl https://example.com
+crawl https://example.com
 ```
 
 ## Developing
