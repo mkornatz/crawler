@@ -4,7 +4,7 @@ import cheerio from 'cheerio';
 import Url from 'url';
 import UrlParser from 'url-parse';
 import { EventEmitter } from 'events';
-import { defaults, isArray, isEmpty, indexOf } from 'lodash';
+import { defaults, isArray, isEmpty } from 'lodash';
 
 const defaultOptions = {
   concurrency: 10,
@@ -55,7 +55,9 @@ export default class Crawler extends EventEmitter {
    * @param {string} domain
    */
   allowCrawlingForDomain(domain) {
-    this.allowedDomains.push(domain);
+    if (this.allowedDomains.indexOf(domain) < 0) {
+      this.allowedDomains.push(domain);
+    }
   }
 
   /**
@@ -78,7 +80,7 @@ export default class Crawler extends EventEmitter {
     const parsedUrl = new UrlParser(uri);
 
     // Is domain allowed?
-    if (indexOf(this.allowedDomains, parsedUrl.host) === -1) {
+    if (this.allowedDomains.indexOf(parsedUrl.host) === -1) {
       return false;
     }
 
@@ -98,11 +100,11 @@ export default class Crawler extends EventEmitter {
    * @param {string} parentUrl The URL at which the url was found
    */
   addToQueue(url, meta = {}) {
-    this.crawlingQueue.push({
+    this.queued++;
+    return this.crawlingQueue.push({
       url: url,
       parentUrl: meta.parentUrl,
     });
-    return this.queued++;
   }
 
   /**
