@@ -8,7 +8,6 @@ import { defaults, isArray, isEmpty, indexOf } from 'lodash';
 
 const defaultOptions = {
   concurrency: 10,
-  url: null,
   allowedDomains: [],
   userAgent:
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
@@ -18,17 +17,18 @@ const defaultOptions = {
  * The main crawling state manager.
  */
 export default class Crawler extends EventEmitter {
-  constructor(options) {
+  constructor(url, options) {
     super(); // Must call for this to be defined
 
     const self = this;
 
     self.options = defaults(options, defaultOptions);
 
-    if (isEmpty(self.options.url) || self.options.url === '') {
+    if (isEmpty(url) || url === '') {
       throw new Error('You must specify a URL to crawl.');
     }
 
+    self.url = url;
     self.queued = 0;
     self.completed = 0;
     self.foundUrls = [];
@@ -36,7 +36,7 @@ export default class Crawler extends EventEmitter {
     self.allowedDomains = [];
 
     // Add the initial URL's domain to the allowed domains
-    const parsedUrl = new UrlParser(self.options.url);
+    const parsedUrl = new UrlParser(self.url);
     self.allowCrawlingForDomain(parsedUrl.host);
 
     // Add other configured allowed domains
@@ -86,14 +86,23 @@ export default class Crawler extends EventEmitter {
   }
 
   /**
-   * Starts the crawling process
+   * Starts the crawling process by adding the main URL to the queue to be crawled.
    */
   start() {
-    var self = this;
-    self.queued = 1;
-    self.crawlingQueue.push({
-      url: self.options.url,
+    return this.addToQueue(this.url);
+  }
+
+  /**
+   * Adds a URL to the queue to be crawled
+   * @param {sring} url The URL to be crawled
+   * @param {string} parentUrl The URL at which the url was found
+   */
+  addToQueue(url, meta = {}) {
+    this.crawlingQueue.push({
+      url: url,
+      parentUrl: meta.parentUrl,
     });
+    return this.queued++;
   }
 
   /**
@@ -137,8 +146,7 @@ export default class Crawler extends EventEmitter {
         if (self.shouldCrawl(response)) {
           self.emit('crawl', task.url);
 
-          var $ = cheerio.load(body);
-
+          const $ = cheerio.load(body);
           const baseHref = $('base').attr('href');
 
           $('a[href], link[href]').each((index, el) => {
@@ -181,8 +189,8 @@ export default class Crawler extends EventEmitter {
   /**
    * Resolves an absolute or relative URL into an absolute URL
    *
-   * @param {string} urlToResolve - an absolute or relative url
-   * @param {string} parentUrl - the url at which this URL was found
+   * @param {string} url An absolute or relative url
+   * @param {string} foundAtUrl The url at which this URL was found
    */
   resolveUrl(options) {
     let parsedUrl;
@@ -218,12 +226,9 @@ export default class Crawler extends EventEmitter {
     }
 
     this.emit('found', found, options.foundAtUrl);
-
-    this.queued++;
     this.foundUrls.push(found);
 
-    this.crawlingQueue.push({
-      url: found,
+    this.addToQueue(found, {
       parentUrl: options.foundAtUrl,
     });
   }
