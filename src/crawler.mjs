@@ -4,22 +4,28 @@ import cheerio from 'cheerio';
 import Url from 'url';
 import UrlParser from 'url-parse';
 import { EventEmitter } from 'events';
-import _ from 'lodash';
+import { defaults, isArray, isEmpty, indexOf } from 'lodash';
+
+const defaultOptions = {
+  concurrency: 10,
+  url: null,
+  allowedDomains: [],
+  userAgent:
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
+};
 
 /**
  * The main crawling state manager.
  */
-export default class Crawler {
+export default class Crawler extends EventEmitter {
   constructor(options) {
+    super(); // Must call for this to be defined
+
     const self = this;
 
-    self.options = _.defaults(options, {
-      concurrency: 10,
-      url: null,
-      crawlDomains: [],
-    });
+    self.options = defaults(options, defaultOptions);
 
-    if (_.isEmpty(self.options.url)) {
+    if (isEmpty(self.options.url) || self.options.url === '') {
       throw new Error('You must specify a URL to crawl.');
     }
 
@@ -28,18 +34,19 @@ export default class Crawler {
     self.foundUrls = [];
     self.crawledUrls = [];
     self.allowedDomains = [];
-    self.userAgent =
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36';
 
-    // Add the url domain and other allowed domains to be crawled
+    // Add the initial URL's domain to the allowed domains
     const parsedUrl = new UrlParser(self.options.url);
     self.allowCrawlingForDomain(parsedUrl.host);
 
-    // Add other allowed domains
-    _.each(self.options.crawlDomains, self.allowCrawlingForDomain.bind(this));
+    // Add other configured allowed domains
+    if (isArray(self.options.allowedDomains)) {
+      self.options.allowedDomains.forEach(self.allowCrawlingForDomain.bind(this));
+    }
 
-    self.crawlingQueue = async.queue(self._task.bind(self), self.options.concurrency);
-    self.emitter = new EventEmitter();
+    // Binds an async queue to the runTask method
+    self.crawlingQueue = async.queue(self.runTask.bind(self), self.options.concurrency);
+    self = new EventEmitter();
   }
 
   /**
@@ -72,19 +79,11 @@ export default class Crawler {
     const parsedUrl = new UrlParser(uri);
 
     // Is domain allowed?
-    if (_.indexOf(this.allowedDomains, parsedUrl.host) === -1) {
+    if (indexOf(this.allowedDomains, parsedUrl.host) === -1) {
       return false;
     }
 
     return this.crawledUrls.indexOf(uri) === -1;
-  }
-
-  /**
-   * Sets a listener for an event
-   */
-  on(type, listener) {
-    this.emitter.on(type, listener);
-    return this;
   }
 
   /**
@@ -101,7 +100,7 @@ export default class Crawler {
   /**
    * The main crawl handler for the async crawl process
    */
-  _task(task, callback) {
+  runTask(task, callback) {
     var self = this;
 
     const requestOptions = {
@@ -115,29 +114,29 @@ export default class Crawler {
         'Accept-Language': 'en-US,en;q=0.9',
         // 'Accept-Encoding': 'gzip, deflate, br',
         Referer: task.parentUrl,
-        'User-Agent': self.userAgent,
+        'User-Agent': self.options.userAgent,
       },
     };
 
     request
       .get(requestOptions, (err, response, body) => {
         if (err || (response && response.statusCode >= 400)) {
-          self.emitter.emit('error', task.url, task.parentUrl, err, response);
+          self.emit('error', task.url, task.parentUrl, err, response);
           self.completed++;
           callback(err);
 
           if (self.queued - self.completed === 0) {
-            self.emitter.emit('complete');
+            self.emit('complete');
           }
 
           return;
         } else {
-          self.emitter.emit('success', task.url, task.parentUrl || 'base', response);
+          self.emit('success', task.url, task.parentUrl || 'base', response);
         }
 
         // Prevent crawling if we shouldn't
         if (self.shouldCrawl(response)) {
-          self.emitter.emit('crawl', task.url);
+          self.emit('crawl', task.url);
 
           var $ = cheerio.load(body);
 
@@ -148,7 +147,7 @@ export default class Crawler {
             if (_.isEmpty(href)) {
               return;
             }
-            self._handleFoundUrl({
+            self.handleFoundUrl({
               foundAtUrl: task.url,
               url: href,
               baseHref,
@@ -160,7 +159,7 @@ export default class Crawler {
             if (_.isEmpty(src)) {
               return;
             }
-            self._handleFoundUrl({
+            self.handleFoundUrl({
               foundAtUrl: task.url,
               url: src,
               baseHref,
@@ -174,7 +173,7 @@ export default class Crawler {
         self.completed++;
         callback();
         if (self.queued - self.completed === 0) {
-          self.emitter.emit('complete');
+          self.emit('complete');
         }
       })
       .setMaxListeners(0);
@@ -186,7 +185,7 @@ export default class Crawler {
    * @param {string} urlToResolve - an absolute or relative url
    * @param {string} parentUrl - the url at which this URL was found
    */
-  _resolveUrl(options) {
+  resolveUrl(options) {
     let parsedUrl;
 
     // If the url is relative, use the parent's url to resolve
@@ -206,8 +205,8 @@ export default class Crawler {
    * should be crawled.
    * @param {object} options { url, parentUrl }
    */
-  _handleFoundUrl(options) {
-    const found = this._resolveUrl(options);
+  handleFoundUrl(options) {
+    const found = this.resolveUrl(options);
 
     // Only allow http and https URLs
     if (found.indexOf('http') < 0) {
@@ -219,7 +218,7 @@ export default class Crawler {
       return;
     }
 
-    this.emitter.emit('found', found, options.foundAtUrl);
+    this.emit('found', found, options.foundAtUrl);
 
     this.queued++;
     this.foundUrls.push(found);

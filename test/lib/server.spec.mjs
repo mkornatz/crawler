@@ -1,11 +1,11 @@
-const Crawler = require('../../lib/crawler');
+import Crawler from '../../lib/crawler.mjs';
 
 const baseUrl = 'http://localhost:5252';
 
-describe('crawler', function() {
+describe('server', function() {
   before(done => {
     global.server.start(() => {
-      console.log('Test server listening on', global.server.port);
+      // console.log('Test server listening on', global.server.port);
       done();
     });
   });

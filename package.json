@@ -4,14 +4,14 @@
   "description": "A CLI tool to crawl websites and determine broken links.",
   "author": "Matt Kornatz <matt@mkornatz.com>",
   "license": "MIT",
-  "main": "crawler.mjs",
+  "main": "crawler-cli.mjs",
   "engines": {
     "node": ">=12.11.1 <13"
   },
   "scripts": {
-    "crawl": "node --experimental-modules crawler.mjs",
+    "crawl": "node --experimental-modules crawler-cli.mjs",
     "prettier": "prettier --write \"**/*.{mjs,js,jsx,json,md}\"",
-    "test": "./node_modules/mocha/bin/mocha --opts mocha.opts",
+    "test": "mocha --opts mocha.opts",
     "precommit": "lint-staged"
   },
   "dependencies": {

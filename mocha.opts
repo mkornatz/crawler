@@ -2,4 +2,4 @@
 --ui bdd
 --timeout 200
 --require ./test/setup
-test/**/*.spec.js
+test/**/*.spec.{mjs,js}
