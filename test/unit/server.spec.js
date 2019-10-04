@@ -15,12 +15,8 @@ describe('server', function() {
     done();
   });
 
-  it('starts', function(done) {
-    new Crawler({
-      url: baseUrl + '/pages/with_base_href.html',
-    })
-      .on('error', () => {})
-      .on('complete', done)
-      .start();
+  it('starts', async () => {
+    const crawler = new Crawler(baseUrl + '/pages/with_base_href.html');
+    return crawler.run();
   });
 });

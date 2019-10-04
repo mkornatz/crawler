@@ -8,7 +8,7 @@ import UrlParser from 'url-parse';
  * @param {string} foundAtUrl The url at which this URL was found
  */
 export function absoluteUrl(options) {
-  if (!options.url) {
+  if (!options.url || options.url === '') {
     throw new Error('A URL parameter is required to resolve.');
   }
 
