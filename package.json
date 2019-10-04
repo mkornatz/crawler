@@ -23,7 +23,7 @@
     }
   },
   "dependencies": {
-    "async": "^2.6.3",
+    "async": "^3.0.1",
     "cheerio": "^1.0.0-rc.3",
     "commander": "^2.20.1",
     "esm": "^3.2.25",

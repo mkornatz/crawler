@@ -7,6 +7,13 @@ import _ from 'lodash';
  */
 export default class ConsoleOutputHandler {
   constructor(crawler) {
+    this.counts = {
+      found: 0,
+      tested: 0,
+      crawled: 0,
+      success: 0,
+      errors: 0,
+    };
     const logLevelsAndColors = {
       levels: {
         ok: 0,
@@ -45,6 +52,7 @@ export default class ConsoleOutputHandler {
 
   // Handles "success" event
   success(url, parentUrl, res) {
+    this.counts.success++;
     this.logger.ok(
       `${url} (found at ${parentUrl}) ${res.headers['content-type']} ${res.headers['content-length']} bytes`
     );
@@ -52,13 +60,21 @@ export default class ConsoleOutputHandler {
 
   // Handles "complete" event
   summarize() {
-    this.logger.status('Finished crawling all URLs.');
+    this.logger.status(
+      `Finished.\n\n
+      Pages Crawled: ${this.counts['crawled']}
+      URLs Found (incl duplicates): ${this.counts['found']}
+      URLs Tested: ${this.counts['success']}
+      Errors: ${this.counts['errors']}
+      `
+    );
   }
 
   // Handles "error" event
   error(url, parentUrl, err, res) {
+    this.counts.errors++;
     if (_.isEmpty(res)) {
-      this.logger.error('Response is empty', err);
+      this.logger.error('Response is empty. ', err);
     } else {
       this.logger.error(`[${res.statusCode}] ${url} (found at ${parentUrl})`);
     }
@@ -66,11 +82,13 @@ export default class ConsoleOutputHandler {
 
   // Handles "found" event
   found(url, foundAtUrl) {
+    this.counts.found++;
     this.logger.found(`${url} (at ${foundAtUrl})`);
   }
 
   // Handles "crawl" event
   crawl(url) {
+    this.counts.crawled++;
     this.logger.crawl(`Crawling ${url}`);
   }
 }

@@ -48,14 +48,11 @@ export default class Crawler extends EventEmitter {
 
   /**
    * Starts the crawling process by adding the main URL to the queue to be crawled.
-   * @param {function} Callback function to execute upon completing the queue processing
+   * @return Promise that will resolve when the queue has finished
    */
-  start(next = () => {}) {
-    // Assign a callback for when the queue finishes processing
-    this.crawlingQueue.drain(next);
-
-    // Adds the first task
+  run() {
     this.addToQueue(new Task(this.url));
+    return this.crawlingQueue.drain();
   }
 
   /**
@@ -148,6 +145,8 @@ export default class Crawler extends EventEmitter {
     request.head(requestOptions, (err, response) => {
       // Add this to the list of tested URLs
       self.store.push('testedUrls', task.url);
+
+      // Clear mutex since we've now added it to testedUrls
       self.store.clearMutexFlag(task.url);
 
       if (err || (response && response.statusCode >= 400)) {
@@ -176,7 +175,8 @@ export default class Crawler extends EventEmitter {
             }
 
             self.emit('crawl', task.url);
-            // Add this to the list of crawled URLs
+
+            // Add this to the list of crawled URLs prior to crawling to avoid race conditions
             self.store.push('crawledUrls', task.url);
 
             const $ = cheerio.load(body);

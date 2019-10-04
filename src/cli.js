@@ -7,11 +7,11 @@ command
   .version('1.0.0')
   .usage('<url>')
   .option('-c, --concurrency <number>', 'number of crawler threads to allow concurrently', parseInt)
-  .option('-d, --depth <number>', 'how many pages deep to crawl', parseInt)
+  // .option('-d, --depth <number>', 'how many pages deep to crawl', parseInt)
   .option('--domains <domains>', 'comma-separated list of domains to allow in crawling', csvToArray)
   // .option('-i, --images', 'Whether to include images in the report')
   // .option('-f, --format <format>', 'Output format', 'text')
-  .action(function(url, cmd) {
+  .action(async (url, cmd) => {
     const crawler = new Crawler(url, {
       concurrency: cmd.concurrency || 10,
       crawlDomains: cmd.domains || [],
@@ -20,9 +20,8 @@ command
     // Add an output handler that listens to crawler events
     const outputHandler = new ConsoleOutputHandler(crawler);
 
-    crawler.start(() => {
-      console.log('finished');
-      outputHandler.summarize();
-    });
+    await crawler.run();
+
+    outputHandler.summarize();
   })
   .parse(process.argv);
