@@ -7,12 +7,13 @@ command
   .version('1.0.0')
   .usage('<url>')
   .option('-c, --concurrency <number>', 'number of crawler threads to allow concurrently', parseInt)
-  // .option('-d, --depth <number>', 'how many pages deep to crawl', parseInt)
+  .option('-d, --depth <number>', 'how many pages deep to crawl (0 = no limit)', parseInt)
   .option('--domains <domains>', 'comma-separated list of domains to allow in crawling', csvToArray)
   // .option('-i, --images', 'Whether to include images in the report')
   // .option('-f, --format <format>', 'Output format', 'text')
   .action(async (url, cmd) => {
     const crawler = new Crawler(url, {
+      depth: cmd.depth || -1,
       concurrency: cmd.concurrency || 10,
       crawlDomains: cmd.domains || [],
     });

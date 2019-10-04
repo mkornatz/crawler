@@ -9,6 +9,7 @@ import { absoluteUrl, getDomainFromUrl } from './utils/url';
 
 const defaultOptions = {
   concurrency: 10,
+  depth: 0,
   allowedDomains: [],
   userAgent:
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
@@ -160,7 +161,9 @@ export default class Crawler extends EventEmitter {
       if (
         response.headers['content-type'] &&
         response.headers['content-type'].indexOf('html') >= 0 &&
-        self.shouldCrawl(response)
+        self.shouldCrawl(response) &&
+        self.options.depth > 0 &&
+        task.meta.depth < self.options.depth
       ) {
         request
           .get(requestOptions, (err, response, body) => {
@@ -191,7 +194,7 @@ export default class Crawler extends EventEmitter {
                 foundAtUrl: task.url,
                 url: href,
                 baseHref,
-                depth: task.meta.depth++,
+                depth: task.meta.depth + 1,
               });
             });
 
@@ -204,7 +207,7 @@ export default class Crawler extends EventEmitter {
                 foundAtUrl: task.url,
                 url: src,
                 baseHref,
-                depth: task.meta.depth++,
+                depth: task.meta.depth + 1,
               });
             });
 
