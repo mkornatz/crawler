@@ -27,13 +27,12 @@ export default class Crawler extends EventEmitter {
 
     this.store = new Store({
       testedUrls: [],
-      inProgressUrls: [],
       crawledUrls: [],
-      allowedDomains: [],
     });
 
     this.url = absoluteUrl({ url });
     this.options = defaults(options, defaultOptions);
+    this.allowedDomains = [];
 
     // Add the initial URL's domain to the allowed domains
     this.allowCrawlingForDomain(getDomainFromUrl(this.url));
@@ -66,9 +65,17 @@ export default class Crawler extends EventEmitter {
    * @param {string} domain
    */
   allowCrawlingForDomain(domain) {
-    if (this.store.doesNotContain('allowedDomains', domain)) {
-      this.store.push('allowedDomains', domain);
+    if (!this.domainAllowedForCrawling(domain)) {
+      this.allowedDomains.push(domain);
     }
+  }
+
+  /**
+   * Determines if a domain is allowed to be crawled
+   * @param {string} domain
+   */
+  domainAllowedForCrawling(domain) {
+    return this.allowedDomains.indexOf(domain) >= 0;
   }
 
   /**
@@ -90,8 +97,8 @@ export default class Crawler extends EventEmitter {
       return false;
     }
 
-    // Is domain allowed?
-    if (this.store.doesNotContain('allowedDomains', getDomainFromUrl(uri))) {
+    // Is domain allowed to be crawled?
+    if (!this.domainAllowedForCrawling(getDomainFromUrl(uri))) {
       return false;
     }
 
@@ -127,7 +134,7 @@ export default class Crawler extends EventEmitter {
       followRedirect: true,
       followAllRedirects: true,
       rejectUnauthorized: false,
-      timeout: 1500,
+      timeout: 5000,
       headers: {
         // 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
         'Accept-Language': 'en-US,en;q=0.9',
