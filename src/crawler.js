@@ -6,6 +6,7 @@ import UrlParser from 'url-parse';
 import { EventEmitter } from 'events';
 import { defaults, isArray, isEmpty } from 'lodash';
 import Task from './task';
+import Store from './store';
 
 const defaultOptions = {
   concurrency: 10,
@@ -23,14 +24,17 @@ export default class Crawler extends EventEmitter {
       throw new Error('You must specify a URL to crawl.');
     }
 
-    super(); // Must call for this to be defined
+    super(); // Must call for 'this' to be defined
+
+    this.store = new Store({
+      queued: 0,
+      completed: 0,
+      foundUrls: [],
+      crawledUrls: [],
+      allowedDomains: [],
+    });
 
     this.url = url;
-    this.queued = 0;
-    this.completed = 0;
-    this.foundUrls = [];
-    this.crawledUrls = [];
-    this.allowedDomains = [];
     this.options = defaults(options, defaultOptions);
 
     // Add the initial URL's domain to the allowed domains
@@ -47,6 +51,23 @@ export default class Crawler extends EventEmitter {
   }
 
   /**
+   * Starts the crawling process by adding the main URL to the queue to be crawled.
+   */
+  start() {
+    this.addToQueue(new Task(this.url));
+
+    // Set the complete handler
+    this.crawlingQueue.drain(this.finish.bind(this));
+  }
+
+  /**
+   * Called when the queue is finished processing
+   */
+  finish() {
+    this.emit('complete');
+  }
+
+  /**
    * Adds a domain to the list of allowed domains to crawl. URLs found
    * with a domain not in this list will be requested, but not
    * crawled for more URLs.
@@ -54,7 +75,7 @@ export default class Crawler extends EventEmitter {
    */
   allowCrawlingForDomain(domain) {
     if (this.allowedDomains.indexOf(domain) < 0) {
-      this.allowedDomains.push(domain);
+      this.store.push('allowedDomains', domain);
     }
   }
 
@@ -78,18 +99,12 @@ export default class Crawler extends EventEmitter {
     const parsedUrl = new UrlParser(uri);
 
     // Is domain allowed?
-    if (this.allowedDomains.indexOf(parsedUrl.host) === -1) {
+    if (this.store.doesNotContain('allowedDomains', parsedUrl.host)) {
       return false;
     }
 
-    return this.crawledUrls.indexOf(uri) === -1;
-  }
-
-  /**
-   * Starts the crawling process by adding the main URL to the queue to be crawled.
-   */
-  start() {
-    return this.addToQueue(new Task(this.url));
+    // Have we already crawled?
+    return this.store.doesNotContain('crawledUrls', uri);
   }
 
   /**
@@ -97,14 +112,14 @@ export default class Crawler extends EventEmitter {
    * @param {Task} task The task to add to the queue
    */
   addToQueue(task) {
-    this.queued++;
+    this.store.incr('queued');
     return this.crawlingQueue.push(task);
   }
 
   /**
    * The main crawl handler for the async crawl process
    */
-  runTask(task, callback) {
+  runTask(task, next) {
     var self = this;
 
     const requestOptions = {
@@ -122,12 +137,35 @@ export default class Crawler extends EventEmitter {
       },
     };
 
+    // First, fetch only the headers for the URL to get the content type and status code (without downloading the body)
+    /* request.head(requestOptions, (err, response) => {
+      if (err || (response && response.statusCode >= 400)) {
+        self.emit('error', task.url, task.meta.parentUrl, err, response);
+        self.store.incr('completed');
+        next(err);
+
+        if (self.queued - self.completed === 0) {
+          self.emit('complete');
+        }
+
+        return;
+
+      // If the URL serves HTML
+      } else if (response.headers['content-type'] && response.headers['content-type'].indexOf('html') >= 0) {
+        // Add the URL to be crawled
+
+      // Non-HTML URL
+      } else {
+        // Don't crawl
+      }
+    }); */
+
     request
       .get(requestOptions, (err, response, body) => {
         if (err || (response && response.statusCode >= 400)) {
           self.emit('error', task.url, task.meta.parentUrl, err, response);
-          self.completed++;
-          callback(err);
+          self.store.incr('completed');
+          next(err);
 
           if (self.queued - self.completed === 0) {
             self.emit('complete');
@@ -173,10 +211,10 @@ export default class Crawler extends EventEmitter {
         }
 
         // Add this to the list of crawled URLs
-        self.crawledUrls.push(task.url);
+        self.store.push('crawledUrls', task.url);
 
-        self.completed++;
-        callback();
+        self.store.incr('completed');
+        next();
         if (self.queued - self.completed === 0) {
           self.emit('complete');
         }
@@ -219,7 +257,7 @@ export default class Crawler extends EventEmitter {
     }
 
     this.emit('found', found, options.foundAtUrl);
-    this.foundUrls.push(found);
+    this.store.push('foundUrls', found);
 
     this.addToQueue(
       new Task(found, {
