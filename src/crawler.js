@@ -5,6 +5,7 @@ import Url from 'url';
 import UrlParser from 'url-parse';
 import { EventEmitter } from 'events';
 import { defaults, isArray, isEmpty } from 'lodash';
+import Task from './task';
 
 const defaultOptions = {
   concurrency: 10,
@@ -88,20 +89,16 @@ export default class Crawler extends EventEmitter {
    * Starts the crawling process by adding the main URL to the queue to be crawled.
    */
   start() {
-    return this.addToQueue(this.url);
+    return this.addToQueue(new Task(this.url));
   }
 
   /**
    * Adds a URL to the queue to be crawled
-   * @param {sring} url The URL to be crawled
-   * @param {string} parentUrl The URL at which the url was found
+   * @param {Task} task The task to add to the queue
    */
-  addToQueue(url, meta = {}) {
+  addToQueue(task) {
     this.queued++;
-    return this.crawlingQueue.push({
-      url: url,
-      parentUrl: meta.parentUrl,
-    });
+    return this.crawlingQueue.push(task);
   }
 
   /**
@@ -120,7 +117,7 @@ export default class Crawler extends EventEmitter {
         // 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
         'Accept-Language': 'en-US,en;q=0.9',
         // 'Accept-Encoding': 'gzip, deflate, br',
-        Referer: task.parentUrl,
+        Referer: task.meta.parentUrl,
         'User-Agent': self.options.userAgent,
       },
     };
@@ -128,7 +125,7 @@ export default class Crawler extends EventEmitter {
     request
       .get(requestOptions, (err, response, body) => {
         if (err || (response && response.statusCode >= 400)) {
-          self.emit('error', task.url, task.parentUrl, err, response);
+          self.emit('error', task.url, task.meta.parentUrl, err, response);
           self.completed++;
           callback(err);
 
@@ -138,7 +135,7 @@ export default class Crawler extends EventEmitter {
 
           return;
         } else {
-          self.emit('success', task.url, task.parentUrl || 'base', response);
+          self.emit('success', task.url, task.meta.parentUrl || 'base', response);
         }
 
         // Prevent crawling if we shouldn't
@@ -157,6 +154,7 @@ export default class Crawler extends EventEmitter {
               foundAtUrl: task.url,
               url: href,
               baseHref,
+              depth: task.meta.depth++,
             });
           });
 
@@ -169,6 +167,7 @@ export default class Crawler extends EventEmitter {
               foundAtUrl: task.url,
               url: src,
               baseHref,
+              depth: task.meta.depth++,
             });
           });
         }
@@ -209,7 +208,7 @@ export default class Crawler extends EventEmitter {
   /**
    * Emits a `found` event which can determine whether or not the url
    * should be crawled.
-   * @param {object} options { url, parentUrl }
+   * @param {object} options { url, parentUrl, depth }
    */
   handleFoundUrl(options) {
     const found = this.resolveUrl(options);
@@ -222,8 +221,11 @@ export default class Crawler extends EventEmitter {
     this.emit('found', found, options.foundAtUrl);
     this.foundUrls.push(found);
 
-    this.addToQueue(found, {
-      parentUrl: options.foundAtUrl,
-    });
+    this.addToQueue(
+      new Task(found, {
+        parentUrl: options.foundAtUrl,
+        depth: options.depth,
+      })
+    );
   }
 }
