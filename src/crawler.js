@@ -1,12 +1,11 @@
 import async from 'async';
 import request from 'request';
 import cheerio from 'cheerio';
-import Url from 'url';
-import UrlParser from 'url-parse';
 import { EventEmitter } from 'events';
 import { defaults, isArray, isEmpty } from 'lodash';
 import Task from './task';
 import Store from './store';
+import { absoluteUrl, getDomainFromUrl } from './utils/url';
 
 const defaultOptions = {
   concurrency: 10,
@@ -27,16 +26,17 @@ export default class Crawler extends EventEmitter {
     super(); // Must call for 'this' to be defined
 
     this.store = new Store({
+      testedUrls: [],
+      inProgressUrls: [],
       crawledUrls: [],
       allowedDomains: [],
     });
 
-    this.url = url;
+    this.url = absoluteUrl({ url });
     this.options = defaults(options, defaultOptions);
 
     // Add the initial URL's domain to the allowed domains
-    const parsedUrl = new UrlParser(this.url);
-    this.allowCrawlingForDomain(parsedUrl.host);
+    this.allowCrawlingForDomain(getDomainFromUrl(this.url));
 
     // Add other configured allowed domains
     if (isArray(this.options.allowedDomains)) {
@@ -49,11 +49,13 @@ export default class Crawler extends EventEmitter {
 
   /**
    * Starts the crawling process by adding the main URL to the queue to be crawled.
+   * @param {function} Callback function to execute upon completing the queue processing
    */
   start(next = () => {}) {
     // Assign a callback for when the queue finishes processing
     this.crawlingQueue.drain(next);
 
+    // Adds the first task
     this.addToQueue(new Task(this.url));
   }
 
@@ -75,7 +77,9 @@ export default class Crawler extends EventEmitter {
    * @return {bool}
    */
   shouldCrawl(res) {
-    const uri = res.request.uri.href;
+    const uri = absoluteUrl({
+      url: res.request.uri.href,
+    });
 
     // only crawl pages if the scheme is http(s)
     if (uri.indexOf('http://') < 0 && uri.indexOf('https://') < 0) {
@@ -86,10 +90,8 @@ export default class Crawler extends EventEmitter {
       return false;
     }
 
-    const parsedUrl = new UrlParser(uri);
-
     // Is domain allowed?
-    if (this.store.doesNotContain('allowedDomains', parsedUrl.host)) {
+    if (this.store.doesNotContain('allowedDomains', getDomainFromUrl(uri))) {
       return false;
     }
 
@@ -111,12 +113,21 @@ export default class Crawler extends EventEmitter {
   runTask(task, next) {
     var self = this;
 
+    // Have we already tested this URL?
+    if (self.store.contains('testedUrls', task.url) || self.store.mutexIsSet(task.url)) {
+      return next();
+    }
+
+    // We store URLs in progress to avoid race conditions
+    self.store.setMutexFlag(task.url);
+
     const requestOptions = {
       url: task.url,
       encoding: 'utf8',
       followRedirect: true,
       followAllRedirects: true,
       rejectUnauthorized: false,
+      timeout: 1500,
       headers: {
         // 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
         'Accept-Language': 'en-US,en;q=0.9',
@@ -127,93 +138,78 @@ export default class Crawler extends EventEmitter {
     };
 
     // First, fetch only the headers for the URL to get the content type and status code (without downloading the body)
-    /* request.head(requestOptions, (err, response) => {
+    request.head(requestOptions, (err, response) => {
+      // Add this to the list of tested URLs
+      self.store.push('testedUrls', task.url);
+      self.store.clearMutexFlag(task.url);
+
       if (err || (response && response.statusCode >= 400)) {
         self.emit('error', task.url, task.meta.parentUrl, err, response);
-        next();
-
-        return;
-
-      // If the URL serves HTML
-      } else if (response.headers['content-type'] && response.headers['content-type'].indexOf('html') >= 0) {
-        // Add the URL to be crawled
-
-      // Non-HTML URL
-      } else {
-        // Don't crawl
+        return next();
       }
-    }); */
 
-    request
-      .get(requestOptions, (err, response, body) => {
-        if (err || (response && response.statusCode >= 400)) {
-          self.emit('error', task.url, task.meta.parentUrl, err, response);
-          next(err);
-          return;
-        } else {
-          self.emit('success', task.url, task.meta.parentUrl || 'base', response);
-        }
+      self.emit('success', task.url, task.meta.parentUrl || 'base', response);
 
-        // Prevent crawling if we shouldn't
-        if (self.shouldCrawl(response)) {
-          self.emit('crawl', task.url);
-
-          const $ = cheerio.load(body);
-          const baseHref = $('base').attr('href');
-
-          $('a[href], link[href]').each((index, el) => {
-            var href = $(el).attr('href');
-            if (isEmpty(href)) {
+      // If the URL serves HTML and we should crawl it
+      if (
+        response.headers['content-type'] &&
+        response.headers['content-type'].indexOf('html') >= 0 &&
+        self.shouldCrawl(response)
+      ) {
+        request
+          .get(requestOptions, (err, response, body) => {
+            if (err) {
+              self.emit('error', task.url, task.meta.parentUrl, err);
+              next(err);
+              return;
+            } else if (response.statusCode >= 400) {
+              self.emit('error', task.url, task.meta.parentUrl, response);
+              next();
               return;
             }
-            self.handleFoundUrl({
-              foundAtUrl: task.url,
-              url: href,
-              baseHref,
-              depth: task.meta.depth++,
-            });
-          });
 
-          $('img[src], script[src]').each((index, el) => {
-            var src = $(el).attr('src');
-            if (isEmpty(src)) {
-              return;
-            }
-            self.handleFoundUrl({
-              foundAtUrl: task.url,
-              url: src,
-              baseHref,
-              depth: task.meta.depth++,
-            });
-          });
-        }
+            self.emit('crawl', task.url);
+            // Add this to the list of crawled URLs
+            self.store.push('crawledUrls', task.url);
 
-        // Add this to the list of crawled URLs
-        self.store.push('crawledUrls', task.url);
+            const $ = cheerio.load(body);
+            const baseHref = $('base').attr('href');
+
+            $('a[href], link[href]').each((index, el) => {
+              var href = $(el).attr('href');
+              if (isEmpty(href)) {
+                return;
+              }
+              self.handleFoundUrl({
+                foundAtUrl: task.url,
+                url: href,
+                baseHref,
+                depth: task.meta.depth++,
+              });
+            });
+
+            $('img[src], script[src]').each((index, el) => {
+              var src = $(el).attr('src');
+              if (isEmpty(src)) {
+                return;
+              }
+              self.handleFoundUrl({
+                foundAtUrl: task.url,
+                url: src,
+                baseHref,
+                depth: task.meta.depth++,
+              });
+            });
+
+            next();
+          })
+          .setMaxListeners(0);
+
+        // Non-HTML, or we shouldn't crawl it
+      } else {
         next();
-      })
-      .setMaxListeners(0);
-  }
-
-  /**
-   * Resolves an absolute or relative URL into an absolute URL
-   *
-   * @param {string} url An absolute or relative url
-   * @param {string} foundAtUrl The url at which this URL was found
-   */
-  resolveUrl(options) {
-    let parsedUrl;
-
-    // If the url is relative, use the parent's url to resolve
-    if (options.url.indexOf('http') === 0) {
-      parsedUrl = new UrlParser(options.url);
-    } else if (options.baseHref) {
-      parsedUrl = new UrlParser(Url.resolve(options.baseHref, options.url));
-    } else {
-      parsedUrl = new UrlParser(Url.resolve(options.foundAtUrl, options.url));
-    }
-
-    return [parsedUrl.protocol, '//', parsedUrl.host, parsedUrl.pathname, parsedUrl.query].join('');
+      }
+    });
   }
 
   /**
@@ -222,7 +218,7 @@ export default class Crawler extends EventEmitter {
    * @param {object} options { url, parentUrl, depth }
    */
   handleFoundUrl(options) {
-    const found = this.resolveUrl(options);
+    const found = absoluteUrl(options);
 
     // Only allow http and https URLs
     if (found.indexOf('http') < 0) {

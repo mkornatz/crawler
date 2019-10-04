@@ -3,6 +3,7 @@ import { isObject, isArray } from 'util';
 export default class Store {
   constructor(initialVals = {}) {
     this.store = initialVals;
+    this.mutexes = {};
   }
   incr(key, incrVal = 1) {
     this.store[key] += incrVal;
@@ -35,5 +36,14 @@ export default class Store {
   }
   doesNotContain(key, val) {
     return !this.contains(key, val);
+  }
+  setMutexFlag(key) {
+    this.mutexes[key] = 1;
+  }
+  clearMutexFlag(key) {
+    delete this.mutexes[key];
+  }
+  mutexIsSet(key) {
+    return this.mutexes[key] === 1;
   }
 }
