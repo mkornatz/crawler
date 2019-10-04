@@ -151,11 +151,11 @@ export default class Crawler extends EventEmitter {
       self.store.clearMutexFlag(task.url);
 
       if (err || (response && response.statusCode >= 400)) {
-        self.emit('error', task.url, task.meta.parentUrl, err, response);
+        self.emit('httpError', task.url, task.meta.parentUrl, err, response);
         return next();
       }
 
-      self.emit('success', task.url, task.meta.parentUrl || 'base', response);
+      self.emit('httpSuccess', task.url, task.meta.parentUrl || 'base', response);
 
       // If the URL serves HTML and we should crawl it
       if (
@@ -167,11 +167,11 @@ export default class Crawler extends EventEmitter {
         request
           .get(requestOptions, (err, response, body) => {
             if (err) {
-              self.emit('error', task.url, task.meta.parentUrl, err);
+              self.emit('httpError', task.url, task.meta.parentUrl, err);
               next(err);
               return;
             } else if (response.statusCode >= 400) {
-              self.emit('error', task.url, task.meta.parentUrl, response);
+              self.emit('httpError', task.url, task.meta.parentUrl, response);
               next();
               return;
             }
@@ -234,7 +234,7 @@ export default class Crawler extends EventEmitter {
       return;
     }
 
-    this.emit('found', found, options.foundAtUrl);
+    this.emit('urlFound', found, options.foundAtUrl);
 
     this.addToQueue(
       new Task(found, {

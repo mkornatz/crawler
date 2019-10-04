@@ -44,14 +44,14 @@ export default class ConsoleOutputHandler {
     });
 
     crawler
-      .on('success', this.success.bind(this))
-      .on('error', this.error.bind(this))
-      .on('found', this.found.bind(this))
+      .on('httpSuccess', this.httpSuccess.bind(this))
+      .on('httpError', this.httpError.bind(this))
+      .on('urlFound', this.urlFound.bind(this))
       .on('crawl', this.crawl.bind(this));
   }
 
   // Handles "success" event
-  success(url, parentUrl, res) {
+  httpSuccess(url, parentUrl, res) {
     this.counts.success++;
     this.logger.ok(
       `${url} (found at ${parentUrl}) ${res.headers['content-type']} ${res.headers['content-length']} bytes`
@@ -71,7 +71,7 @@ export default class ConsoleOutputHandler {
   }
 
   // Handles "error" event
-  error(url, parentUrl, err, res) {
+  httpError(url, parentUrl, err, res) {
     this.counts.errors++;
     if (_.isEmpty(res)) {
       this.logger.error('Response is empty. ', err);
@@ -81,7 +81,7 @@ export default class ConsoleOutputHandler {
   }
 
   // Handles "found" event
-  found(url, foundAtUrl) {
+  urlFound(url, foundAtUrl) {
     this.counts.found++;
     this.logger.found(`${url} (at ${foundAtUrl})`);
   }

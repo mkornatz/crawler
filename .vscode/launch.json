@@ -4,6 +4,14 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Run Tests",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": ["--opts", "mocha.opts", "-u", "tdd", "--timeout", "999999", "--colors", "${workspaceFolder}/test"],
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Crawl mkornatz.com",
       "program": "${workspaceFolder}/index-cli.js",
       "args": ["https://mkornatz.com"],
