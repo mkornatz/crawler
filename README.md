@@ -18,7 +18,8 @@ crawl https://example.com
 
 ### Output Handler
 
-The crawler instance fires off events to be handled by the output handler, which can handle the display of events, a summary of the crawl, etc.
+The crawler instance fires off events to be handled by the output handler, which can handle the display of events, a
+summary of the crawl, etc.
 
 - `found` - Fires when a URL was found in parsing a page
 - `success` - Fires when a URL was successfully loaded (HTTP 200-399 response)

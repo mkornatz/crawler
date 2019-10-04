@@ -5,6 +5,7 @@
   "author": "Matt Kornatz <matt@mkornatz.com>",
   "license": "MIT",
   "main": "index.js",
+  "module": "src/crawler.js",
   "bin": {
     "crawl": "index-cli.js"
   },
@@ -12,7 +13,6 @@
     "node": ">=12.11.1 <13"
   },
   "scripts": {
-    "crawl": "node -r esm index.js",
     "prettier": "prettier --write \"**/*.{mjs,js,jsx,json,md}\"",
     "test": "mocha --opts mocha.opts"
   },

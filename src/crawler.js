@@ -162,8 +162,7 @@ export default class Crawler extends EventEmitter {
         response.headers['content-type'] &&
         response.headers['content-type'].indexOf('html') >= 0 &&
         self.shouldCrawl(response) &&
-        self.options.depth > 0 &&
-        task.meta.depth < self.options.depth
+        (self.options.depth <= 0 || (self.options.depth > 0 && task.meta.depth < self.options.depth))
       ) {
         request
           .get(requestOptions, (err, response, body) => {
