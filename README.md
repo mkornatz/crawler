@@ -16,14 +16,13 @@ crawl https://example.com
 
 ## Developing
 
-### Custom Output Handler
+### Output Handler
 
-The crawler instance fires off events to be handled by the output handler.
+The crawler instance fires off events to be handled by the output handler, which can handle the display of events, a summary of the crawl, etc.
 
 - `found` - Fires when a URL was found in parsing a page
 - `success` - Fires when a URL was successfully loaded (HTTP 200-399 response)
 - `error` - Fires when a URL fails to load (HTTP 400+ response)
-- `complete` - Fires when the crawling is finished
 - `crawl` - Fires when the crawler is beginning to crawl a URL
 
 ```js
@@ -33,9 +32,6 @@ crawler
   })
   .on('error', (url, parentUrl, err, response) => {
     console.log(`${url} failed to load on ${parentUrl}`, err);
-  })
-  .on('complete', () => {
-    console.log('Finished crawling!');
   })
   .on('found', (url, parentUrl) => {
     console.log(`${url} was found on ${parentUrl} but not yet requested or crawled`);
