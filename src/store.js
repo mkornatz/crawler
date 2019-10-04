@@ -1,6 +1,6 @@
 import { isObject, isArray } from 'util';
 
-export class Store {
+export default class Store {
   constructor(initialVals = {}) {
     this.store = initialVals;
   }

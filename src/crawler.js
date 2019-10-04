@@ -27,9 +27,6 @@ export default class Crawler extends EventEmitter {
     super(); // Must call for 'this' to be defined
 
     this.store = new Store({
-      queued: 0,
-      completed: 0,
-      foundUrls: [],
       crawledUrls: [],
       allowedDomains: [],
     });
@@ -53,18 +50,11 @@ export default class Crawler extends EventEmitter {
   /**
    * Starts the crawling process by adding the main URL to the queue to be crawled.
    */
-  start() {
+  start(next = () => {}) {
+    // Assign a callback for when the queue finishes processing
+    this.crawlingQueue.drain(next);
+
     this.addToQueue(new Task(this.url));
-
-    // Set the complete handler
-    this.crawlingQueue.drain(this.finish.bind(this));
-  }
-
-  /**
-   * Called when the queue is finished processing
-   */
-  finish() {
-    this.emit('complete');
   }
 
   /**
@@ -74,7 +64,7 @@ export default class Crawler extends EventEmitter {
    * @param {string} domain
    */
   allowCrawlingForDomain(domain) {
-    if (this.allowedDomains.indexOf(domain) < 0) {
+    if (this.store.doesNotContain('allowedDomains', domain)) {
       this.store.push('allowedDomains', domain);
     }
   }
@@ -112,7 +102,6 @@ export default class Crawler extends EventEmitter {
    * @param {Task} task The task to add to the queue
    */
   addToQueue(task) {
-    this.store.incr('queued');
     return this.crawlingQueue.push(task);
   }
 
@@ -141,12 +130,7 @@ export default class Crawler extends EventEmitter {
     /* request.head(requestOptions, (err, response) => {
       if (err || (response && response.statusCode >= 400)) {
         self.emit('error', task.url, task.meta.parentUrl, err, response);
-        self.store.incr('completed');
-        next(err);
-
-        if (self.queued - self.completed === 0) {
-          self.emit('complete');
-        }
+        next();
 
         return;
 
@@ -164,13 +148,7 @@ export default class Crawler extends EventEmitter {
       .get(requestOptions, (err, response, body) => {
         if (err || (response && response.statusCode >= 400)) {
           self.emit('error', task.url, task.meta.parentUrl, err, response);
-          self.store.incr('completed');
           next(err);
-
-          if (self.queued - self.completed === 0) {
-            self.emit('complete');
-          }
-
           return;
         } else {
           self.emit('success', task.url, task.meta.parentUrl || 'base', response);
@@ -212,12 +190,7 @@ export default class Crawler extends EventEmitter {
 
         // Add this to the list of crawled URLs
         self.store.push('crawledUrls', task.url);
-
-        self.store.incr('completed');
         next();
-        if (self.queued - self.completed === 0) {
-          self.emit('complete');
-        }
       })
       .setMaxListeners(0);
   }
@@ -257,7 +230,6 @@ export default class Crawler extends EventEmitter {
     }
 
     this.emit('found', found, options.foundAtUrl);
-    this.store.push('foundUrls', found);
 
     this.addToQueue(
       new Task(found, {

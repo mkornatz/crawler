@@ -39,7 +39,6 @@ export default class ConsoleOutputHandler {
     crawler
       .on('success', this.success.bind(this))
       .on('error', this.error.bind(this))
-      .on('complete', this.complete.bind(this))
       .on('found', this.found.bind(this))
       .on('crawl', this.crawl.bind(this));
   }
@@ -52,7 +51,7 @@ export default class ConsoleOutputHandler {
   }
 
   // Handles "complete" event
-  complete() {
+  summarize() {
     this.logger.status('Finished crawling all URLs.');
   }
 

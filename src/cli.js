@@ -18,8 +18,11 @@ command
     });
 
     // Add an output handler that listens to crawler events
-    new ConsoleOutputHandler(crawler);
+    const outputHandler = new ConsoleOutputHandler(crawler);
 
-    crawler.start();
+    crawler.start(() => {
+      console.log('finished');
+      outputHandler.summarize();
+    });
   })
   .parse(process.argv);

@@ -5,7 +5,7 @@ const defaultMeta = {
   depth: null,
 };
 
-export class Task {
+export default class Task {
   constructor(url, meta) {
     this.url = url;
     this.meta = defaults(meta, defaultMeta);
