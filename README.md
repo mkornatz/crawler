@@ -2,6 +2,8 @@
 
 A website crawler library with a built-in CLI tool to help expose bad URLs on a page or site.
 
+> Note: This project is still in beta stage. It is not yet available as a stable package.
+
 ## Install
 
 ```bash
