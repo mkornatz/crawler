@@ -54,7 +54,7 @@ export default class ConsoleOutputHandler {
   httpSuccess(url, parentUrl, res) {
     this.counts.success++;
     this.logger.ok(
-      `${url} (found at ${parentUrl}) ${res.headers['content-type']} ${res.headers['content-length']} bytes`
+      `${url} (HTTP ${res.statusCode}) ${res.headers['content-type']} ${res.headers['content-length']} bytes`
     );
   }
 
@@ -76,14 +76,14 @@ export default class ConsoleOutputHandler {
     if (_.isEmpty(res)) {
       this.logger.error('Response is empty. ', err);
     } else {
-      this.logger.error(`[${res.statusCode}] ${url} (found at ${parentUrl})`);
+      this.logger.error(`(HTTP ${res.statusCode}) ${url} (found at ${parentUrl})`);
     }
   }
 
   // Handles "found" event
-  urlFound(url, foundAtUrl) {
+  urlFound(url, parentUrl) {
     this.counts.found++;
-    this.logger.found(`${url} (at ${foundAtUrl})`);
+    // this.logger.found(`${url} (at ${parentUrl})`);
   }
 
   // Handles "crawl" event
