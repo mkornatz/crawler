@@ -46,12 +46,27 @@ export default class Crawler extends EventEmitter {
   }
 
   /**
+   * Adds a URL to the queue to be crawled
+   * @param {CrawlUrl} task The task to add to the queue
+   */
+  addToQueue(task) {
+    return this.crawlingQueue.push(task);
+  }
+
+  /**
    * Starts the crawling process by adding the main URL to the queue to be crawled.
    * @return Promise that will resolve when the queue has finished
    */
   run() {
     this.addToQueue(new CrawlUrl(this.url));
     return this.crawlingQueue.drain();
+  }
+
+  /**
+   * Runs a task in the crawling queue
+   */
+  runTask(task, next) {
+    task.run(this, next);
   }
 
   /**
@@ -108,20 +123,5 @@ export default class Crawler extends EventEmitter {
 
     // Have we already crawled?
     return this.store.doesNotContain('crawledUrls', uri);
-  }
-
-  /**
-   * Adds a URL to the queue to be crawled
-   * @param {CrawlUrl} task The task to add to the queue
-   */
-  addToQueue(task) {
-    return this.crawlingQueue.push(task);
-  }
-
-  /**
-   * Runs a task in the crawling queue
-   */
-  runTask(task, next) {
-    task.run(this, next);
   }
 }
