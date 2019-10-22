@@ -10,4 +10,7 @@ export default class Task {
     this.url = url;
     this.meta = defaults(meta, defaultMeta);
   }
+  run(crawler, next) {
+    next();
+  }
 }

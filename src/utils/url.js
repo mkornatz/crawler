@@ -7,20 +7,20 @@ import UrlParser from 'url-parse';
  * @param {string} url An absolute or relative url
  * @param {string} foundAtUrl The url at which this URL was found
  */
-export function absoluteUrl(options) {
-  if (!options.url || options.url === '') {
+export function absoluteUrl({ url, baseHref, foundAtUrl }) {
+  if (!url || url === '') {
     throw new Error('A URL parameter is required to resolve.');
   }
 
   let parsedUrl;
 
   // If the url is relative, use the parent's url to resolve
-  if (options.url.indexOf('http') === 0) {
-    parsedUrl = new UrlParser(options.url);
-  } else if (options.baseHref) {
-    parsedUrl = new UrlParser(Url.resolve(options.baseHref, options.url));
-  } else if (options.foundAtUrl) {
-    parsedUrl = new UrlParser(Url.resolve(options.foundAtUrl, options.url));
+  if (url.indexOf('http') === 0) {
+    parsedUrl = new UrlParser(url);
+  } else if (baseHref) {
+    parsedUrl = new UrlParser(Url.resolve(baseHref, url));
+  } else if (foundAtUrl) {
+    parsedUrl = new UrlParser(Url.resolve(foundAtUrl, url));
   } else {
     throw new Error('Could not resolve to absolute URL');
   }

@@ -7,7 +7,7 @@ describe('<link>', () => {
   });
   after(stopServer);
 
-  it('finds URLs in src attributes of <link> tags', async () => {
+  it('finds URLs in href attributes of <link> tags', async () => {
     await crawlAndExpectUrlMatches('with_base_href.html', /\.css/, 1);
   });
 });

@@ -44,14 +44,14 @@ export default class ConsoleOutputHandler {
     });
 
     crawler
-      .on('httpSuccess', this.httpSuccess.bind(this))
-      .on('httpError', this.httpError.bind(this))
+      .on('test.success', this.testSuccess.bind(this))
+      .on('test.error', this.testError.bind(this))
       .on('urlFound', this.urlFound.bind(this))
-      .on('crawl', this.crawl.bind(this));
+      .on('crawl.start', this.crawlStart.bind(this));
   }
 
-  // Handles "success" event
-  httpSuccess({ url, parentUrl, response }) {
+  // Handles "test.success" event
+  testSuccess({ url, parentUrl, response }) {
     this.counts.success++;
     this.logger.ok(
       `${url} (HTTP ${response.statusCode}) ${response.headers['content-type']} ${
@@ -72,8 +72,8 @@ export default class ConsoleOutputHandler {
     );
   }
 
-  // Handles "error" event
-  httpError({ url, parentUrl, error, response }) {
+  // Handles "test.error" event
+  testError({ url, parentUrl, error, response }) {
     this.counts.errors++;
     if (_.isEmpty(response)) {
       this.logger.error('Response is empty. ', error);
@@ -88,8 +88,8 @@ export default class ConsoleOutputHandler {
     // this.logger.found(`${url} (at ${parentUrl})`);
   }
 
-  // Handles "crawl" event
-  crawl({ url }) {
+  // Handles "crawl.start" event
+  crawlStart({ url }) {
     this.counts.crawled++;
     this.logger.crawl(`Crawling ${url}`);
   }

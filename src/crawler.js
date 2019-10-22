@@ -1,9 +1,8 @@
 import async from 'async';
-import request from 'request';
-import cheerio from 'cheerio';
 import { EventEmitter } from 'events';
 import { defaults, isArray, isEmpty } from 'lodash';
-import Task from './task';
+import CrawlUrl from './tasks/crawl-url';
+import TestUrl from './tasks/test-url';
 import Store from './store';
 import { absoluteUrl, getDomainFromUrl } from './utils/url';
 
@@ -52,7 +51,7 @@ export default class Crawler extends EventEmitter {
    * @return Promise that will resolve when the queue has finished
    */
   run() {
-    this.addToQueue(new Task(this.url));
+    this.addToQueue(new CrawlUrl(this.url));
     return this.crawlingQueue.drain();
   }
 
@@ -81,17 +80,25 @@ export default class Crawler extends EventEmitter {
    * @param  {Response} response object
    * @return {bool}
    */
-  shouldCrawl(res) {
+  shouldCrawl(res, task) {
+    // Have we gone out of our depth?
+    if (this.options.depth >= 0) {
+      if (task.meta.depth < this.options.depth) {
+        return false;
+      }
+    }
+
+    // Only HTML should be crawled
+    if (!res.headers['content-type'] || res.headers['content-type'].indexOf('html') < 0) {
+      return false;
+    }
+
     const uri = absoluteUrl({
       url: res.request.uri.href,
     });
 
     // only crawl pages if the scheme is http(s)
     if (uri.indexOf('http://') < 0 && uri.indexOf('https://') < 0) {
-      return false;
-    }
-    // don't crawl pages that aren't html
-    if (res.headers['content-type'] && res.headers['content-type'].indexOf('html') < 0) {
       return false;
     }
 
@@ -106,138 +113,17 @@ export default class Crawler extends EventEmitter {
 
   /**
    * Adds a URL to the queue to be crawled
-   * @param {Task} task The task to add to the queue
+   * @param {CrawlUrl} task The task to add to the queue
    */
   addToQueue(task) {
     return this.crawlingQueue.push(task);
   }
 
   /**
-   * The main crawl handler for the async crawl process
+   * Runs a task in the crawling queue
    */
   runTask(task, next) {
-    var self = this;
-
-    // Have we already tested this URL?
-    if (self.store.contains('testedUrls', task.url) || self.store.mutexIsSet(task.url)) {
-      return next();
-    }
-
-    // We store URLs in progress to avoid race conditions
-    self.store.setMutexFlag(task.url);
-
-    const requestOptions = {
-      url: task.url,
-      encoding: 'utf8',
-      followRedirect: true,
-      followAllRedirects: true,
-      rejectUnauthorized: false,
-      timeout: 5000,
-      headers: {
-        // 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
-        'Accept-Language': 'en-US,en;q=0.9',
-        // 'Accept-Encoding': 'gzip, deflate, br',
-        Referer: task.meta.parentUrl,
-        'User-Agent': self.options.userAgent,
-      },
-    };
-
-    // First, fetch only the headers for the URL to get the content type and status code (without downloading the body)
-    request.head(requestOptions, (err, response) => {
-      // Add this to the list of tested URLs
-      self.store.push('testedUrls', task.url);
-
-      // Clear mutex since we've now added it to testedUrls
-      self.store.clearMutexFlag(task.url);
-
-      if (err || (response && response.statusCode >= 400)) {
-        self.emit('httpError', {
-          url: task.url,
-          parentUrl: task.meta.parentUrl,
-          error: err,
-          response,
-        });
-        return next();
-      }
-
-      self.emit('httpSuccess', {
-        url: task.url,
-        parentUrl: task.meta.parentUrl || 'base',
-        response,
-      });
-
-      // If the URL serves HTML and we should crawl it
-      if (
-        response.headers['content-type'] &&
-        response.headers['content-type'].indexOf('html') >= 0 &&
-        self.shouldCrawl(response) &&
-        (self.options.depth <= 0 || (self.options.depth > 0 && task.meta.depth < self.options.depth))
-      ) {
-        request
-          .get(requestOptions, (err, response, body) => {
-            if (err) {
-              self.emit('httpError', {
-                url: task.url,
-                parentUrl: task.meta.parentUrl,
-                error: err,
-              });
-              next(err);
-              return;
-            } else if (response.statusCode >= 400) {
-              self.emit('httpError', {
-                url: task.url,
-                parentUrl: task.meta.parentUrl,
-                response,
-              });
-              next();
-              return;
-            }
-
-            self.emit('crawl', {
-              url: task.url,
-            });
-
-            // Add this to the list of crawled URLs prior to crawling to avoid race conditions
-            self.store.push('crawledUrls', task.url);
-
-            const $ = cheerio.load(body);
-            const baseHref = $('base').attr('href');
-
-            $('a[href], link[href]').each((index, el) => {
-              var href = $(el).attr('href');
-              if (isEmpty(href)) {
-                return;
-              }
-              self.handleFoundUrl({
-                foundAtUrl: task.url,
-                url: href,
-                baseHref,
-                depth: task.meta.depth + 1,
-              });
-            });
-
-            $('img[src], script[src]').each((index, el) => {
-              var src = $(el).attr('src');
-              if (isEmpty(src)) {
-                return;
-              }
-              self.handleFoundUrl({
-                foundAtUrl: task.url,
-                url: src,
-                baseHref,
-                depth: task.meta.depth + 1,
-              });
-            });
-
-            next();
-          })
-          .setMaxListeners(0);
-
-        // Non-HTML, or we shouldn't crawl it
-      } else {
-        next();
-      }
-    });
+    task.run(this, next);
   }
 
   /**
@@ -245,8 +131,8 @@ export default class Crawler extends EventEmitter {
    * should be crawled.
    * @param {object} options { url, parentUrl, depth }
    */
-  handleFoundUrl(options) {
-    const found = absoluteUrl(options);
+  handleFoundUrl({ foundAtUrl, url, baseHref, depth }) {
+    const found = absoluteUrl({ foundAtUrl, url, baseHref });
 
     // Only allow http and https URLs
     if (found.indexOf('http') < 0) {
@@ -255,13 +141,13 @@ export default class Crawler extends EventEmitter {
 
     this.emit('urlFound', {
       url: found,
-      parentUrl: options.foundAtUrl,
+      parentUrl: foundAtUrl,
     });
 
     this.addToQueue(
-      new Task(found, {
-        parentUrl: options.foundAtUrl,
-        depth: options.depth,
+      new TestUrl(found, {
+        parentUrl: foundAtUrl,
+        depth: depth,
       })
     );
   }

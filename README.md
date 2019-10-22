@@ -24,22 +24,25 @@ The crawler instance fires off events to be handled by the output handler, which
 summary of the crawl, etc.
 
 - `urlFound` - Fires when a URL was found in parsing a page
-- `httpSuccess` - Fires when a URL was successfully loaded (HTTP 200-399 response)
-- `httpError` - Fires when a URL fails to load (HTTP 400+ response)
+- `test.success` - Fires when a URL was successfully loaded (HTTP 200-399 response)
+- `test.error` - Fires when a URL fails to load (HTTP 400+ response)
 - `crawl` - Fires when the crawler is beginning to crawl a URL
 
 ```js
 crawler
-  .on('httpSuccess', ({ url, parentUrl, response }) => {
+  .on('test.success', ({ url, parentUrl, response }) => {
     console.log(`${url} was succcessfully loaded on ${parentUrl}`);
   })
-  .on('httpError', ({ url, parentUrl, error, response }) => {
+  .on('test.error', ({ url, parentUrl, error, response }) => {
     console.log(`${url} failed to load on ${parentUrl}`, err);
+  })
+  .on('crawl.error', ({ url, parentUrl, error, response }) => {
+    console.log(`${url} failed to be crawled`, err);
   })
   .on('urlFound', ({ url, parentUrl }) => {
     console.log(`${url} was found on ${parentUrl} but not yet requested or crawled`);
   })
-  .on('crawl', ({ url }) => {
+  .on('crawl.start', ({ url }) => {
     console.log(`beginning to crawl ${url}`);
   });
 ```
