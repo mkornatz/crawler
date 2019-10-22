@@ -1,5 +1,6 @@
 import { startServer, stopServer, crawlerForTestServer } from '../../helpers/server';
 import { crawlAndExpectUrlMatches } from '../../helpers/crawl-and-expect-url-matches';
+import { CrawlerEvents } from '../../../src/crawler';
 
 describe('CrawlUrl Task', () => {
   before(() => {
@@ -21,12 +22,15 @@ describe('CrawlUrl Task', () => {
 
   it('finds and tests image URLs', async () => {
     const crawler = crawlerForTestServer('image_url_only.html');
-    crawler.on('crawl.urlFound', ({ url }) => {
+
+    crawler.on(CrawlerEvents.URL_FOUND, ({ url }) => {
       expect(url).to.match(/should-not-be-crawled\.png/);
     });
-    crawler.on('test.success', ({ url }) => {
+
+    crawler.on(CrawlerEvents.URL_TEST_SUCCESS, ({ url }) => {
       expect(url).to.match(/should-not-be-crawled\.png/);
     });
+
     await crawler.run();
   });
 });

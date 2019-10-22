@@ -1,10 +1,11 @@
 import { crawlerForTestServer } from './server';
+import { CrawlerEvents } from '../../src/crawler';
 
 export const crawlAndExpectUrlMatches = async (path, match, count) => {
   const crawler = crawlerForTestServer(path);
   let numMatches = 0;
 
-  crawler.on('crawl.urlFound', ({ url }) => {
+  crawler.on(CrawlerEvents.URL_FOUND, ({ url }) => {
     if (url.match(match)) {
       numMatches++;
     }

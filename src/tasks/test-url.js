@@ -1,6 +1,7 @@
 import request from 'request-promise-native';
 import Task from '../task';
 import CrawlUrl from './crawl-url';
+import { CrawlerEvents } from '../crawler';
 
 export default class TestUrl extends Task {
   async run(crawler, next) {
@@ -48,7 +49,7 @@ export default class TestUrl extends Task {
       }
 
       if (response && response.statusCode >= 400) {
-        crawler.emit('test.error', {
+        crawler.emit(CrawlerEvents.URL_TEST_ERROR, {
           url: self.url,
           parentUrl: self.meta.parentUrl,
           response,
@@ -63,7 +64,7 @@ export default class TestUrl extends Task {
     // Clear mutex since we've now added it to testedUrls
     crawler.store.clearMutexFlag(self.url);
 
-    crawler.emit('test.success', {
+    crawler.emit(CrawlerEvents.URL_TEST_SUCCESS, {
       url: self.url,
       parentUrl: self.meta.parentUrl || 'base',
       response,

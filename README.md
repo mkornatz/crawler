@@ -8,7 +8,7 @@ A website crawler library with a built-in CLI tool to help expose bad URLs on a 
 
 ```bash
 cd path/to/crawler && npm install && npm link
-crawl https://example.com
+crawl --help
 ```
 
 ## Using as a library
@@ -18,14 +18,14 @@ npm install --save crawler
 ```
 
 ```javascript
-import Crawler from 'crawler';
+import { Crawler, CrawlerEvents } from 'crawler';
 
 const crawler = new Crawler('https://example.com', {
   depth: 0,
   concurrency: 10,
 });
 
-crawler.on('crawl.urlFound', ({url, parentUrl}) => {
+crawler.on(CrawlerEvents.URL_FOUND, ({url, parentUrl}) => {
   console.log(`${url} was found on page ${parentUrl}`);
 });
 
@@ -34,11 +34,13 @@ await crawler.run();
 
 ### Crawler Events
 
-- `test.success` - Fires when a URL was successfully loaded (HTTP 200-399 response)
-- `test.error` - Fires when a URL fails to load (HTTP 400+ response)
-- `crawl.start` - Fires when the crawler is beginning to crawl a URL
-- `crawl.error` - Fires when the crawler errors when trying to crawl a URL
-- `crawl.urlFound` - Fires when a URL was found in parsing a page
+The Crawler class is an inheritor of the EventEmitter class. You can attach listeners to wait for a number of events with the `on()` method.
+
+- `URL_TEST_SUCCESS` - A URL was successfully tested (HTTP 200-399 response)
+- `URL_TEST_ERROR` - A URL failed to load (HTTP 400+ response)
+- `NOW_CRAWLING` - The crawler is beginning to crawl a new URL
+- `CRAWL_ERROR` - The crawler encountered an error while trying to crawl a URL
+- `URL_FOUND` - A URL was found while crawling a page
 
 ## Developing
 

@@ -4,6 +4,7 @@ import { isEmpty } from 'lodash';
 import Task from '../task';
 import TestUrl from './test-url';
 import { absoluteUrl } from '../utils/url';
+import { CrawlerEvents } from '../crawler';
 
 export default class CrawlUrl extends Task {
   async run(crawler, next) {
@@ -31,7 +32,7 @@ export default class CrawlUrl extends Task {
       const response = await request.get(requestOptions).setMaxListeners(0);
       const body = response.body;
 
-      crawler.emit('crawl.start', {
+      crawler.emit(CrawlerEvents.NOW_CRAWLING, {
         url: self.url,
       });
 
@@ -67,7 +68,7 @@ export default class CrawlUrl extends Task {
         });
       });
     } catch (error) {
-      crawler.emit('crawl.error', {
+      crawler.emit(CrawlerEvents.CRAWL_ERROR, {
         url: self.url,
         parentUrl: self.meta.parentUrl,
         error,
@@ -90,7 +91,7 @@ export default class CrawlUrl extends Task {
       return;
     }
 
-    this.crawler.emit('crawl.urlFound', {
+    this.crawler.emit(CrawlerEvents.URL_FOUND, {
       url: found,
       parentUrl: foundAtUrl,
     });

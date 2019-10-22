@@ -1,5 +1,6 @@
 import winston from 'winston';
 import _ from 'lodash';
+import { CrawlerEvents } from '../crawler';
 
 /**
  * A console based output handler, which listens to events from crawler and displays results to the console.
@@ -44,10 +45,10 @@ export default class ConsoleOutputHandler {
     });
 
     crawler
-      .on('test.success', this.testSuccess.bind(this))
-      .on('test.error', this.testError.bind(this))
-      .on('crawl.urlFound', this.urlFound.bind(this))
-      .on('crawl.start', this.crawlStart.bind(this));
+      .on(CrawlerEvents.URL_TEST_SUCCESS, this.testSuccess.bind(this))
+      .on(CrawlerEvents.URL_TEST_ERROR, this.testError.bind(this))
+      .on(CrawlerEvents.URL_TEST_ERROR, this.urlFound.bind(this))
+      .on(CrawlerEvents.NOW_CRAWLING, this.crawlStart.bind(this));
   }
 
   // Handles "test.success" event

@@ -1,7 +1,8 @@
-import { startServer, stopServer, crawlerForTestServer, baseUrl } from '../../helpers/server';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
+import { startServer, stopServer, crawlerForTestServer, baseUrl } from '../../helpers/server';
+import { CrawlerEvents } from '../../../src/crawler';
 
 chai.use(sinonChai);
 
@@ -30,8 +31,8 @@ describe('TestUrl Task', () => {
     const spySuccess = sinon.spy();
     const spyError = sinon.spy();
 
-    crawler.on('test.success', spySuccess);
-    crawler.on('test.error', spyError);
+    crawler.on(CrawlerEvents.URL_TEST_SUCCESS, spySuccess);
+    crawler.on(CrawlerEvents.URL_TEST_ERROR, spyError);
 
     await crawler.run();
 
@@ -43,10 +44,10 @@ describe('TestUrl Task', () => {
     const crawler = crawlerForTestServer('page_with_404_link.html', { depth: 2 });
 
     const crawlSpy = sinon.spy();
-    crawler.on('crawl.start', crawlSpy);
+    crawler.on(CrawlerEvents.NOW_CRAWLING, crawlSpy);
 
     const foundSpy = sinon.spy();
-    crawler.on('crawl.urlFound', foundSpy);
+    crawler.on(CrawlerEvents.URL_FOUND, foundSpy);
 
     await crawler.run();
 
@@ -61,7 +62,7 @@ describe('TestUrl Task', () => {
 
   it('does not crawl image URLs', async () => {
     const crawler = crawlerForTestServer('image_url_only.html');
-    crawler.on('crawl.start', url => {
+    crawler.on(CrawlerEvents.NOW_CRAWLING, url => {
       expect(url).not.to.match(/should-not-be-crawled\.png/);
     });
     await crawler.run();

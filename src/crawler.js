@@ -4,6 +4,7 @@ import { defaults, isArray, isEmpty } from 'lodash';
 import CrawlUrl from './tasks/crawl-url';
 import Store from './store';
 import { absoluteUrl, getDomainFromUrl } from './utils/url';
+export * from './types';
 
 const defaultOptions = {
   concurrency: 10,
