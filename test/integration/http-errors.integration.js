@@ -1,4 +1,4 @@
-import { startServer, stopServer, crawlerForTestServer } from '../helpers/server';
+import { startServer, stopServer, crawlerForTestServer, baseUrl } from '../helpers/server';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -13,15 +13,15 @@ describe('HTTP errors', () => {
   });
   afterEach(stopServer);
 
-  it('Tries a GET after a 405 Method Not Allowed', async () => {
-    // Mock a 405 response, and then a 200
-    let numCalls = 0;
+  it('tries a GET after a 405 Method Not Allowed', async () => {
+    let numResponses = 0;
 
+    // Mocks a 405 only for the first response
     server.on('response', (req, res) => {
-      if (numCalls === 0) {
+      if (numResponses === 0) {
         res.status = 405;
         res.statusCode = 405;
-        numCalls++;
+        numResponses++;
       }
     });
 
@@ -37,5 +37,25 @@ describe('HTTP errors', () => {
 
     expect(spySuccess).to.have.been.calledOnce;
     expect(spyError).not.to.have.been.called;
+  });
+
+  it("doesn't crawl pages that have 404'd", async () => {
+    const crawler = crawlerForTestServer('page_with_404_link.html', { depth: 2 });
+
+    const crawlSpy = sinon.spy();
+    crawler.on('crawl.start', crawlSpy);
+
+    const foundSpy = sinon.spy();
+    crawler.on('crawl.urlFound', foundSpy);
+
+    await crawler.run();
+
+    expect(crawlSpy).not.to.have.been.calledWith({
+      url: `${baseUrl}/does-not-exist.html`,
+    });
+    expect(foundSpy).to.have.been.calledWith({
+      parentUrl: `${baseUrl}/page_with_404_link.html`,
+      url: `${baseUrl}/does-not-exist.html`,
+    });
   });
 });
