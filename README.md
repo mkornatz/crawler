@@ -4,10 +4,11 @@ A website crawler library with a built-in CLI tool to help expose bad URLs on a 
 
 > Note: This project is still in beta stage. It is not yet available as a stable package.
 
-## Install
+## Using the CLI Tool
 
 ```bash
-npm install
+cd path/to/crawler && npm install && npm link
+crawl https://example.com
 ```
 
 ## Using as a library
@@ -39,11 +40,10 @@ await crawler.run();
 - `crawl.error` - Fires when the crawler errors when trying to crawl a URL
 - `crawl.urlFound` - Fires when a URL was found in parsing a page
 
-## Using the CLI Tool
+## Developing
 
 ```bash
-cd path/to/crawler && npm link
-crawl https://example.com
+npm install
 ```
 
 ## Testing
