@@ -16,7 +16,7 @@ describe('TestUrl Task', () => {
   it('tries a GET after a 405 Method Not Allowed', async () => {
     let numResponses = 0;
 
-    // Mocks a 405 only for the first response
+    // TODO: Use a stub for the first response to mock a 405
     server.on('response', (req, res) => {
       if (numResponses === 0) {
         res.status = 405;
