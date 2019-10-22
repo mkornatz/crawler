@@ -151,11 +151,20 @@ export default class Crawler extends EventEmitter {
       self.store.clearMutexFlag(task.url);
 
       if (err || (response && response.statusCode >= 400)) {
-        self.emit('httpError', task.url, task.meta.parentUrl, err, response);
+        self.emit('httpError', {
+          url: task.url,
+          parentUrl: task.meta.parentUrl,
+          error: err,
+          response,
+        });
         return next();
       }
 
-      self.emit('httpSuccess', task.url, task.meta.parentUrl || 'base', response);
+      self.emit('httpSuccess', {
+        url: task.url,
+        parentUrl: task.meta.parentUrl || 'base',
+        response,
+      });
 
       // If the URL serves HTML and we should crawl it
       if (
@@ -167,16 +176,26 @@ export default class Crawler extends EventEmitter {
         request
           .get(requestOptions, (err, response, body) => {
             if (err) {
-              self.emit('httpError', task.url, task.meta.parentUrl, err);
+              self.emit('httpError', {
+                url: task.url,
+                parentUrl: task.meta.parentUrl,
+                error: err,
+              });
               next(err);
               return;
             } else if (response.statusCode >= 400) {
-              self.emit('httpError', task.url, task.meta.parentUrl, response);
+              self.emit('httpError', {
+                url: task.url,
+                parentUrl: task.meta.parentUrl,
+                response,
+              });
               next();
               return;
             }
 
-            self.emit('crawl', task.url);
+            self.emit('crawl', {
+              url: task.url,
+            });
 
             // Add this to the list of crawled URLs prior to crawling to avoid race conditions
             self.store.push('crawledUrls', task.url);
@@ -234,7 +253,10 @@ export default class Crawler extends EventEmitter {
       return;
     }
 
-    this.emit('urlFound', found, options.foundAtUrl);
+    this.emit('urlFound', {
+      url: found,
+      parentUrl: options.foundAtUrl,
+    });
 
     this.addToQueue(
       new Task(found, {

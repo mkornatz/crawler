@@ -2,5 +2,4 @@
 --ui bdd
 --timeout 200
 --require esm
---require ./test/setup
 test/**/*.{spec,test}.js

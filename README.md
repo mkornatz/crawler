@@ -30,16 +30,16 @@ summary of the crawl, etc.
 
 ```js
 crawler
-  .on('httpSuccess', (url, parentUrl, response) => {
+  .on('httpSuccess', ({url, parentUrl, response}) => {
     console.log(`${url} was succcessfully loaded on ${parentUrl}`);
   })
-  .on('httpError', (url, parentUrl, err, response) => {
+  .on('httpError', ({url, parentUrl, error, response}) => {
     console.log(`${url} failed to load on ${parentUrl}`, err);
   })
-  .on('urlFound', (url, parentUrl) => {
+  .on('urlFound', ({url, parentUrl}) => {
     console.log(`${url} was found on ${parentUrl} but not yet requested or crawled`);
   })
-  .on('crawl', url => {
+  .on('crawl', ({url}) => {
     console.log(`beginning to crawl ${url}`);
   });
 ```

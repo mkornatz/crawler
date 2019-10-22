@@ -51,10 +51,12 @@ export default class ConsoleOutputHandler {
   }
 
   // Handles "success" event
-  httpSuccess(url, parentUrl, res) {
+  httpSuccess({ url, parentUrl, response }) {
     this.counts.success++;
     this.logger.ok(
-      `${url} (HTTP ${res.statusCode}) ${res.headers['content-type']} ${res.headers['content-length']} bytes`
+      `${url} (HTTP ${response.statusCode}) ${response.headers['content-type']} ${
+        response.headers['content-length']
+      } bytes`
     );
   }
 
@@ -71,23 +73,23 @@ export default class ConsoleOutputHandler {
   }
 
   // Handles "error" event
-  httpError(url, parentUrl, err, res) {
+  httpError({ url, parentUrl, error, response }) {
     this.counts.errors++;
-    if (_.isEmpty(res)) {
-      this.logger.error('Response is empty. ', err);
+    if (_.isEmpty(response)) {
+      this.logger.error('Response is empty. ', error);
     } else {
-      this.logger.error(`(HTTP ${res.statusCode}) ${url} (found at ${parentUrl})`);
+      this.logger.error(`(HTTP ${response.statusCode}) ${url} (found at ${parentUrl})`);
     }
   }
 
   // Handles "found" event
-  urlFound(url, parentUrl) {
+  urlFound({ url, parentUrl }) {
     this.counts.found++;
     // this.logger.found(`${url} (at ${parentUrl})`);
   }
 
   // Handles "crawl" event
-  crawl(url) {
+  crawl({ url }) {
     this.counts.crawled++;
     this.logger.crawl(`Crawling ${url}`);
   }
