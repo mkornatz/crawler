@@ -4,7 +4,7 @@ export const crawlAndExpectUrlMatches = async (path, match, count) => {
   const crawler = crawlerForTestServer(path);
   let numMatches = 0;
 
-  crawler.on('urlFound', ({ url }) => {
+  crawler.on('crawl.urlFound', ({ url }) => {
     if (url.match(match)) {
       numMatches++;
     }
