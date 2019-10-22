@@ -1,11 +1,11 @@
-import { startServer, stopServer, crawlerForTestServer, baseUrl } from '../helpers/server';
+import { startServer, stopServer, crawlerForTestServer, baseUrl } from '../../helpers/server';
 import chai from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 chai.use(sinonChai);
 
-describe('HTTP errors', () => {
+describe('TestUrl Task', () => {
   let server;
 
   beforeEach(() => {
@@ -57,5 +57,13 @@ describe('HTTP errors', () => {
       parentUrl: `${baseUrl}/page_with_404_link.html`,
       url: `${baseUrl}/does-not-exist.html`,
     });
+  });
+
+  it('does not crawl image URLs', async () => {
+    const crawler = crawlerForTestServer('image_url_only.html');
+    crawler.on('crawl.start', url => {
+      expect(url).not.to.match(/should-not-be-crawled\.png/);
+    });
+    await crawler.run();
   });
 });
