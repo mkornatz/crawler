@@ -14,7 +14,9 @@
   },
   "scripts": {
     "prettier": "prettier --write \"**/*.{mjs,js,jsx,json,md}\"",
-    "test": "mocha --opts mocha.opts"
+    "test": "mocha --opts test/mocha.opts test/**/*.{unit,integration,acceptance}.js",
+    "test:vsdebug:file": "mocha --opts test/mocha.opts --inspect-brk=16672",
+    "test:vsdebug:grep": "mocha --opts test/mocha.opts --inspect-brk=16672 test/**/*.{unit,integration,acceptance}.js -g"
   },
   "husky": {
     "hooks": {
@@ -30,6 +32,7 @@
     "events": "^3.0.0",
     "lodash": "^4.17.15",
     "request": "^2.88.0",
+    "request-promise-native": "^1.0.7",
     "url": "^0.11.0",
     "url-parse": "^1.4.7",
     "winston": "^3.2.1"
@@ -44,6 +47,8 @@
     "lint-staged": "^9.4.1",
     "mocha": "^5.0.0",
     "prettier": "^1.18.2",
+    "sinon": "^7.5.0",
+    "sinon-chai": "^3.3.0",
     "static-server": "^3.0.0"
   },
   "lint-staged": {

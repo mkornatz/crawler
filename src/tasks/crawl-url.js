@@ -1,4 +1,4 @@
-import request from 'request';
+import request from 'request-promise-native';
 import cheerio from 'cheerio';
 import { isEmpty } from 'lodash';
 import Task from '../task';
@@ -6,7 +6,7 @@ import TestUrl from './test-url';
 import { absoluteUrl } from '../utils/url';
 
 export default class CrawlUrl extends Task {
-  run(crawler, next) {
+  async run(crawler, next) {
     const self = this;
     self.crawler = crawler;
 
@@ -16,6 +16,7 @@ export default class CrawlUrl extends Task {
       followRedirect: true,
       followAllRedirects: true,
       rejectUnauthorized: false,
+      resolveWithFullResponse: true,
       timeout: 5000,
       headers: {
         // 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
@@ -26,65 +27,54 @@ export default class CrawlUrl extends Task {
       },
     };
 
-    request
-      .get(requestOptions, (err, response, body) => {
-        if (err) {
-          crawler.emit('crawl.error', {
-            url: self.url,
-            parentUrl: self.meta.parentUrl,
-            error: err,
-          });
-          next(err);
-          return;
-        } else if (response.statusCode >= 400) {
-          crawler.emit('crawl.error', {
-            url: self.url,
-            parentUrl: self.meta.parentUrl,
-            response,
-          });
-          next();
-          return;
+    try {
+      const response = await request.get(requestOptions).setMaxListeners(0);
+      const body = response.body;
+
+      crawler.emit('crawl.start', {
+        url: self.url,
+      });
+
+      // Add this to the list of crawled URLs prior to crawling to avoid race conditions
+      crawler.store.push('crawledUrls', self.url);
+
+      const $ = cheerio.load(body);
+      const baseHref = $('base').attr('href');
+
+      $('a[href], link[href]').each((index, el) => {
+        var href = $(el).attr('href');
+        if (isEmpty(href)) {
+          return next();
         }
-
-        crawler.emit('crawl.start', {
-          url: self.url,
+        self.handleFoundUrl({
+          foundAtUrl: self.url,
+          url: href,
+          baseHref,
+          depth: self.meta.depth + 1,
         });
+      });
 
-        // Add this to the list of crawled URLs prior to crawling to avoid race conditions
-        crawler.store.push('crawledUrls', self.url);
-
-        const $ = cheerio.load(body);
-        const baseHref = $('base').attr('href');
-
-        $('a[href], link[href]').each((index, el) => {
-          var href = $(el).attr('href');
-          if (isEmpty(href)) {
-            return;
-          }
-          self.handleFoundUrl({
-            foundAtUrl: self.url,
-            url: href,
-            baseHref,
-            depth: self.meta.depth + 1,
-          });
+      $('img[src], script[src]').each((index, el) => {
+        var src = $(el).attr('src');
+        if (isEmpty(src)) {
+          return next();
+        }
+        self.handleFoundUrl({
+          foundAtUrl: self.url,
+          url: src,
+          baseHref,
+          depth: self.meta.depth + 1,
         });
+      });
+    } catch (error) {
+      crawler.emit('crawl.error', {
+        url: self.url,
+        parentUrl: self.meta.parentUrl,
+        error,
+      });
+    }
 
-        $('img[src], script[src]').each((index, el) => {
-          var src = $(el).attr('src');
-          if (isEmpty(src)) {
-            return;
-          }
-          self.handleFoundUrl({
-            foundAtUrl: self.url,
-            url: src,
-            baseHref,
-            depth: self.meta.depth + 1,
-          });
-        });
-
-        next();
-      })
-      .setMaxListeners(0);
+    next();
   }
 
   /**

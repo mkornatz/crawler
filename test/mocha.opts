@@ -2,4 +2,5 @@
 --ui bdd
 --timeout 200
 --require esm
-test/**/*.{spec,test}.js
+--recursive
+--full-trace

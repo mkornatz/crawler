@@ -13,7 +13,7 @@ command
   // .option('-f, --format <format>', 'Output format', 'text')
   .action(async (url, cmd) => {
     const crawler = new Crawler(url, {
-      depth: cmd.depth || -1,
+      depth: cmd.depth || 0,
       concurrency: cmd.concurrency || 10,
       crawlDomains: cmd.domains || [],
     });

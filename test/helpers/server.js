@@ -9,8 +9,8 @@ export const baseUrl = `http://localhost:${serverPort}`;
  * Creates a new instance of a crawler for the test server
  * @param {string} path relative path of entry url
  */
-export const crawlerForTestServer = path => {
-  return new Crawler(`${baseUrl}/${path}`);
+export const crawlerForTestServer = (path, options = {}) => {
+  return new Crawler(`${baseUrl}/${path}`, options);
 };
 
 export const startServer = templatePath => {
@@ -20,8 +20,12 @@ export const startServer = templatePath => {
   });
 
   global.server.start();
+
+  return global.server;
 };
 
 export const stopServer = () => {
   global.server.stop();
+
+  return global.server;
 };

@@ -59,7 +59,6 @@ npm test
 ## TODO
 
 - Use `Accept-Encoding: gzip, deflate, br` to mimic browser (LinkedIn 999 error)
-- Fallback to GET method when HTTP 405 is returned for a HEAD request
 
 ## Similar projects
 

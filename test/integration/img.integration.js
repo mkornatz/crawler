@@ -14,10 +14,10 @@ describe('<img>', () => {
   it('finds and checks image URLs', async () => {
     const crawler = crawlerForTestServer('image_url_only.html');
     crawler.on('crawl.urlFound', ({ url }) => {
-      expect(url).to.match(/\.png/);
+      expect(url).to.match(/should-not-be-crawled\.png/);
     });
     crawler.on('test.success', ({ url }) => {
-      expect(url).to.match(/(\.png|image_url_only.html)/);
+      expect(url).to.match(/should-not-be-crawled\.png/);
     });
     await crawler.run();
   });
@@ -25,7 +25,7 @@ describe('<img>', () => {
   it('does not crawl image URLs', async () => {
     const crawler = crawlerForTestServer('image_url_only.html');
     crawler.on('crawl.start', url => {
-      expect(url).not.to.match(/\.png/);
+      expect(url).not.to.match(/should-not-be-crawled\.png/);
     });
     await crawler.run();
   });

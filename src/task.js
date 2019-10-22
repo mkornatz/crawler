@@ -2,7 +2,7 @@ import { defaults } from 'lodash';
 
 const defaultMeta = {
   parentUrl: null,
-  depth: null,
+  depth: 1,
 };
 
 export default class Task {
@@ -10,7 +10,5 @@ export default class Task {
     this.url = url;
     this.meta = defaults(meta, defaultMeta);
   }
-  run(crawler, next) {
-    next();
-  }
+  async run(/*crawler*/) {}
 }

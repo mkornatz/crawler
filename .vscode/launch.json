@@ -4,10 +4,32 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Run Tests",
+      "name": "Run All Tests",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "args": ["--opts", "mocha.opts", "-u", "tdd", "--timeout", "999999", "--colors", "${workspaceFolder}/test"],
       "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test Current File",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run-script", "test:vsdebug:file", "${file}"],
+      "port": 16672,
+      "timeout": 30000,
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run Highlighted Test",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run-script", "test:vsdebug:grep", "${selectedText}"],
+      "port": 16672,
+      "timeout": 30000,
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
     },
     {
       "type": "node",

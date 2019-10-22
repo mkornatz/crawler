@@ -57,9 +57,9 @@ export default class Crawler extends EventEmitter {
    * Starts the crawling process by adding the main URL to the queue to be crawled.
    * @return Promise that will resolve when the queue has finished
    */
-  run() {
+  async run() {
     this.addToQueue(new CrawlUrl(this.url));
-    return this.crawlingQueue.drain();
+    await this.crawlingQueue.drain();
   }
 
   /**
@@ -96,8 +96,8 @@ export default class Crawler extends EventEmitter {
    */
   shouldCrawl(res, task) {
     // Have we gone out of our depth?
-    if (this.options.depth >= 0) {
-      if (task.meta.depth < this.options.depth) {
+    if (this.options.depth > 0) {
+      if (task.meta.depth >= this.options.depth) {
         return false;
       }
     }
