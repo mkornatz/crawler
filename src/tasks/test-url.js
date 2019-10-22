@@ -53,7 +53,12 @@ export default class TestUrl extends Task {
         });
 
         if (crawler.shouldCrawl(response, this)) {
-          crawler.addToQueue(new CrawlUrl());
+          crawler.addToQueue(
+            new CrawlUrl(self.url, {
+              depth: self.depth,
+              parentUrl: self.parentUrl,
+            })
+          );
         }
       }
 
