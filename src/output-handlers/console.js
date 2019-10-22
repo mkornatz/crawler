@@ -51,7 +51,7 @@ export default class ConsoleOutputHandler {
   }
 
   // Handles "test.success" event
-  testSuccess({ url, parentUrl, response }) {
+  testSuccess({ url, response }) {
     this.counts.success++;
     this.logger.ok(
       `${url} (HTTP ${response.statusCode}) ${response.headers['content-type']} ${
@@ -83,7 +83,7 @@ export default class ConsoleOutputHandler {
   }
 
   // Handles "found" event
-  urlFound({ url, parentUrl }) {
+  urlFound() {
     this.counts.found++;
     // this.logger.found(`${url} (at ${parentUrl})`);
   }
