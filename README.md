@@ -7,21 +7,31 @@ A website crawler library with a built-in CLI tool to help expose bad URLs on a 
 ## Install
 
 ```bash
-npm install && npm link
+npm install
 ```
 
-## Using the CLI Tool
+## Using as a library
 
 ```bash
-crawl https://example.com
+npm install --save crawler
 ```
 
-## Developing
+```javascript
+import Crawler from 'crawler';
 
-### Output Handler
+const crawler = new Crawler('https://example.com', {
+  depth: 0,
+  concurrency: 10,
+});
 
-The crawler instance fires off events to be handled by the output handler, which can handle the display of events, a
-summary of the crawl, etc.
+crawler.on('crawl.urlFound', ({url, parentUrl}) => {
+  console.log(`${url} was found on page ${parentUrl}`);
+});
+
+await crawler.run();
+```
+
+### Crawler Events
 
 - `test.success` - Fires when a URL was successfully loaded (HTTP 200-399 response)
 - `test.error` - Fires when a URL fails to load (HTTP 400+ response)
@@ -29,23 +39,11 @@ summary of the crawl, etc.
 - `crawl.error` - Fires when the crawler errors when trying to crawl a URL
 - `crawl.urlFound` - Fires when a URL was found in parsing a page
 
-```js
-crawler
-  .on('test.success', ({ url, parentUrl, response }) => {
-    console.log(`${url} was succcessfully loaded on ${parentUrl}`);
-  })
-  .on('test.error', ({ url, parentUrl, error, response }) => {
-    console.log(`${url} failed to load on ${parentUrl}`, err);
-  })
-  .on('crawl.start', ({ url }) => {
-    console.log(`beginning to crawl ${url}`);
-  })
-  .on('crawl.error', ({ url, parentUrl, error, response }) => {
-    console.log(`${url} failed to be crawled`, err);
-  })
-  .on('crawl.urlFound', ({ url, parentUrl }) => {
-    console.log(`${url} was found on ${parentUrl} but not yet requested or crawled`);
-  });
+## Using the CLI Tool
+
+```bash
+cd path/to/crawler && npm link
+crawl https://example.com
 ```
 
 ## Testing
@@ -53,7 +51,7 @@ crawler
 This uses Mocha and Chai with the `expect` syntax. To run tests:
 
 ```bash
-npm test
+npm t
 ```
 
 ## Similar projects
