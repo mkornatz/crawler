@@ -8,7 +8,7 @@ A website crawler library with a built-in CLI tool to help expose bad URLs on a 
 
 ```bash
 cd path/to/crawler && npm install && npm link
-crawl --help
+crawl https://example.com
 ```
 
 ## Using as a library
@@ -25,7 +25,7 @@ const crawler = new Crawler('https://example.com', {
   concurrency: 10,
 });
 
-crawler.on(CrawlerEvents.URL_FOUND, ({url, parentUrl}) => {
+crawler.on(CrawlerEvents.URL_FOUND, ({ url, parentUrl }) => {
   console.log(`${url} was found on page ${parentUrl}`);
 });
 
@@ -34,7 +34,8 @@ await crawler.run();
 
 ### Crawler Events
 
-The Crawler class is an inheritor of the EventEmitter class. You can attach listeners to wait for a number of events with the `on()` method.
+The Crawler class is an inheritor of the EventEmitter class. You can attach listeners to wait for a number of events
+with the `on()` method.
 
 - `URL_TEST_SUCCESS` - A URL was successfully tested (HTTP 200-399 response)
 - `URL_TEST_ERROR` - A URL failed to load (HTTP 400+ response)
