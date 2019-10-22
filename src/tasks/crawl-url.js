@@ -100,7 +100,7 @@ export default class CrawlUrl extends Task {
       return;
     }
 
-    this.crawler.emit('urlFound', {
+    this.crawler.emit('crawl.urlFound', {
       url: found,
       parentUrl: foundAtUrl,
     });

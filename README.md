@@ -23,10 +23,11 @@ crawl https://example.com
 The crawler instance fires off events to be handled by the output handler, which can handle the display of events, a
 summary of the crawl, etc.
 
-- `urlFound` - Fires when a URL was found in parsing a page
 - `test.success` - Fires when a URL was successfully loaded (HTTP 200-399 response)
 - `test.error` - Fires when a URL fails to load (HTTP 400+ response)
-- `crawl` - Fires when the crawler is beginning to crawl a URL
+- `crawl.start` - Fires when the crawler is beginning to crawl a URL
+- `crawl.error` - Fires when the crawler errors when trying to crawl a URL
+- `crawl.urlFound` - Fires when a URL was found in parsing a page
 
 ```js
 crawler
@@ -36,14 +37,14 @@ crawler
   .on('test.error', ({ url, parentUrl, error, response }) => {
     console.log(`${url} failed to load on ${parentUrl}`, err);
   })
+  .on('crawl.start', ({ url }) => {
+    console.log(`beginning to crawl ${url}`);
+  })
   .on('crawl.error', ({ url, parentUrl, error, response }) => {
     console.log(`${url} failed to be crawled`, err);
   })
-  .on('urlFound', ({ url, parentUrl }) => {
+  .on('crawl.urlFound', ({ url, parentUrl }) => {
     console.log(`${url} was found on ${parentUrl} but not yet requested or crawled`);
-  })
-  .on('crawl.start', ({ url }) => {
-    console.log(`beginning to crawl ${url}`);
   });
 ```
 
