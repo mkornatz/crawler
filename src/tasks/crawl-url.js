@@ -18,10 +18,10 @@ export default class CrawlUrl extends Task {
       rejectUnauthorized: false,
       resolveWithFullResponse: true,
       timeout: 5000,
+      gzip: true,
       headers: {
         // 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
         'Accept-Language': 'en-US,en;q=0.9',
-        // 'Accept-Encoding': 'gzip, deflate, br',
         Referer: self.meta.parentUrl,
         'User-Agent': crawler.options.userAgent,
       },
