@@ -2,7 +2,6 @@ import async from 'async';
 import { EventEmitter } from 'events';
 import { defaults, isArray, isEmpty } from 'lodash';
 import CrawlUrl from './tasks/crawl-url';
-import TestUrl from './tasks/test-url';
 import Store from './store';
 import { absoluteUrl, getDomainFromUrl } from './utils/url';
 
@@ -124,31 +123,5 @@ export default class Crawler extends EventEmitter {
    */
   runTask(task, next) {
     task.run(this, next);
-  }
-
-  /**
-   * Emits a `found` event which can determine whether or not the url
-   * should be crawled.
-   * @param {object} options { url, parentUrl, depth }
-   */
-  handleFoundUrl({ foundAtUrl, url, baseHref, depth }) {
-    const found = absoluteUrl({ foundAtUrl, url, baseHref });
-
-    // Only allow http and https URLs
-    if (found.indexOf('http') < 0) {
-      return;
-    }
-
-    this.emit('urlFound', {
-      url: found,
-      parentUrl: foundAtUrl,
-    });
-
-    this.addToQueue(
-      new TestUrl(found, {
-        parentUrl: foundAtUrl,
-        depth: depth,
-      })
-    );
   }
 }

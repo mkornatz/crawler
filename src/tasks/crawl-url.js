@@ -2,10 +2,13 @@ import request from 'request';
 import cheerio from 'cheerio';
 import { isEmpty } from 'lodash';
 import Task from '../task';
+import TestUrl from './test-url';
+import { absoluteUrl } from '../utils/url';
 
 export default class CrawlUrl extends Task {
   run(crawler, next) {
     const self = this;
+    self.crawler = crawler;
 
     const requestOptions = {
       url: self.url,
@@ -58,7 +61,7 @@ export default class CrawlUrl extends Task {
           if (isEmpty(href)) {
             return;
           }
-          crawler.handleFoundUrl({
+          self.handleFoundUrl({
             foundAtUrl: self.url,
             url: href,
             baseHref,
@@ -71,7 +74,7 @@ export default class CrawlUrl extends Task {
           if (isEmpty(src)) {
             return;
           }
-          crawler.handleFoundUrl({
+          self.handleFoundUrl({
             foundAtUrl: self.url,
             url: src,
             baseHref,
@@ -82,5 +85,31 @@ export default class CrawlUrl extends Task {
         next();
       })
       .setMaxListeners(0);
+  }
+
+  /**
+   * Emits a `found` event which can determine whether or not the url
+   * should be crawled.
+   * @param {object} options { url, parentUrl, depth }
+   */
+  handleFoundUrl({ foundAtUrl, url, baseHref, depth }) {
+    const found = absoluteUrl({ foundAtUrl, url, baseHref });
+
+    // Only allow http and https URLs
+    if (found.indexOf('http') < 0) {
+      return;
+    }
+
+    this.crawler.emit('urlFound', {
+      url: found,
+      parentUrl: foundAtUrl,
+    });
+
+    this.crawler.addToQueue(
+      new TestUrl(found, {
+        parentUrl: foundAtUrl,
+        depth: depth,
+      })
+    );
   }
 }
