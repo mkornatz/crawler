@@ -77,7 +77,7 @@ export default class ConsoleOutputHandler {
   testError({ url, parentUrl, error, response }) {
     this.counts.errors++;
     if (_.isEmpty(response)) {
-      this.logger.error('Response is empty. ', error);
+      this.logger.error(`${error.name}: [${error.cause.code}] ${error.cause.reason} - ${url}`);
     } else {
       this.logger.error(`(HTTP ${response.statusCode}) ${url} (found at ${parentUrl})`);
     }

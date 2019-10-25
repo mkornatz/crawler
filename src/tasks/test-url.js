@@ -37,6 +37,15 @@ export default class TestUrl extends Task {
     try {
       response = await request.head(requestOptions).setMaxListeners(0);
     } catch (error) {
+      if (error.response === undefined) {
+        crawler.emit(CrawlerEvents.URL_TEST_ERROR, {
+          url: self.url,
+          parentUrl: self.meta.parentUrl,
+          error,
+        });
+        return next();
+      }
+
       response = error.response;
 
       // If we're blocked with a "405 Method Not Allowed" when using HEAD, try a GET

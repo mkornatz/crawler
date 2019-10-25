@@ -87,7 +87,7 @@ export default class CrawlUrl extends Task {
     const found = absoluteUrl({ foundAtUrl, url, baseHref });
 
     // Only allow http and https URLs
-    if (found.indexOf('http') < 0) {
+    if (found.indexOf('http') !== 0) {
       return;
     }
 
