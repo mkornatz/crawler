@@ -57,7 +57,12 @@ This uses Mocha and Chai with the `expect` syntax. To run tests:
 npm t
 ```
 
-## Similar projects
+## Known Issues
 
-- https://github.com/antivanov/js-crawler
-- https://github.com/yusukeshibata/site-crawler
+### Response Parsing Error
+
+Node 12 introduced a new http-parser which is stricter when it comes to parsing HTTP responses. This causes some URLs to trigger an error when parsing the response. For the time being, you need to pass an extra node option to work around this issue:
+
+```
+NODE_OPTIONS="--http-parser=legacy" crawl https://example.com
+```
