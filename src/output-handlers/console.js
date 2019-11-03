@@ -55,9 +55,7 @@ export default class ConsoleOutputHandler {
   testSuccess({ url, response }) {
     this.counts.success++;
     this.logger.ok(
-      `${url} (HTTP ${response.statusCode}) ${response.headers['content-type']} ${
-        response.headers['content-length']
-      } bytes`
+      `${url} (HTTP ${response.status}) ${response.headers['content-type']} ${response.headers['content-length']} bytes`
     );
   }
 
@@ -77,9 +75,9 @@ export default class ConsoleOutputHandler {
   testError({ url, parentUrl, error, response }) {
     this.counts.errors++;
     if (_.isEmpty(response)) {
-      this.logger.error(`${error.name}: [${error.cause.code}] ${error.cause.reason} - ${url}`);
+      this.logger.error(`${error}: ${url}`);
     } else {
-      this.logger.error(`(HTTP ${response.statusCode}) ${url} (found at ${parentUrl})`);
+      this.logger.error(`(HTTP ${response.status}) ${url} (found at ${parentUrl})`);
     }
   }
 

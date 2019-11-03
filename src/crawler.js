@@ -109,7 +109,7 @@ export default class Crawler extends EventEmitter {
     }
 
     const uri = absoluteUrl({
-      url: res.request.uri.href,
+      url: res.config.url,
     });
 
     // only crawl pages if the scheme is http(s)

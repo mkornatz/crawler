@@ -1,4 +1,4 @@
-import request from 'request-promise-native';
+import axios from 'axios';
 import Task from '../task';
 import CrawlUrl from './crawl-url';
 import { CrawlerEvents } from '../crawler';
@@ -16,26 +16,22 @@ export default class TestUrl extends Task {
     crawler.store.setMutexFlag(self.url);
 
     const requestOptions = {
-      url: self.url,
-      encoding: 'utf8',
-      followRedirect: true,
-      followAllRedirects: true,
-      rejectUnauthorized: false,
-      resolveWithFullResponse: true,
+      responseEncoding: 'utf8',
+      maxRedirects: 10,
       timeout: 5000,
-      gzip: true,
       headers: {
-        // 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
         'Accept-Language': 'en-US,en;q=0.9',
         Referer: self.meta.parentUrl,
         'User-Agent': crawler.options.userAgent,
       },
     };
 
+    const httpInstance = axios.create(requestOptions);
+
     // First, fetch only the headers for the URL to get the content type and status code (without downloading the body)
     let response;
     try {
-      response = await request.head(requestOptions).setMaxListeners(0);
+      response = await httpInstance.head(self.url);
     } catch (error) {
       if (error.response === undefined) {
         crawler.emit(CrawlerEvents.URL_TEST_ERROR, {
@@ -49,15 +45,15 @@ export default class TestUrl extends Task {
       response = error.response;
 
       // If we're blocked with a "405 Method Not Allowed" when using HEAD, try a GET
-      if (response && response.statusCode === 405) {
+      if (response && response.status === 405) {
         try {
-          response = await request.get(requestOptions).setMaxListeners(0);
+          response = await httpInstance.get(self.url);
         } catch (err) {
           response = err.response;
         }
       }
 
-      if (response && response.statusCode >= 400) {
+      if (response && response.status >= 400) {
         crawler.emit(CrawlerEvents.URL_TEST_ERROR, {
           url: self.url,
           parentUrl: self.meta.parentUrl,
