@@ -54,9 +54,15 @@ export default class ConsoleOutputHandler {
   // Handles "test.success" event
   testSuccess({ url, response }) {
     this.counts.success++;
-    this.logger.ok(
-      `${url} (HTTP ${response.status}) ${response.headers['content-type']} ${response.headers['content-length']} bytes`
-    );
+    if (response.headers['content-length']) {
+      this.logger.ok(
+        `${url} (HTTP ${response.status}) ${response.headers['content-type']} ${
+          response.headers['content-length']
+        } bytes`
+      );
+    } else {
+      this.logger.ok(`${url} (HTTP ${response.status}) ${response.headers['content-type']}`);
+    }
   }
 
   // Handles "complete" event
