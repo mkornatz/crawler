@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { createObjectCsvWriter } from 'csv-writer';
 import { CrawlerEvents } from '../crawler';
 
 /**
@@ -7,12 +7,21 @@ import { CrawlerEvents } from '../crawler';
  */
 export default class CSVOutputHandler {
   constructor(crawler) {
+    this.writer = createObjectCsvWriter({
+      path: 'output.csv',
+      header: [{ id: 'url', title: 'URL' }, { id: 'content-type', title: 'Content Type' }],
+    });
     crawler
       .on(CrawlerEvents.URL_TEST_SUCCESS, this.testSuccess.bind(this))
       .on(CrawlerEvents.URL_TEST_ERROR, this.testError.bind(this));
   }
 
-  testSuccess({ url, response }) {}
+  async testSuccess({ url, response }) {
+    await this.writer.writeRecords({
+      url: url,
+      'content-type': response.header['content-type'],
+    });
+  }
 
   testError({ url, parentUrl, error, response }) {}
 }
