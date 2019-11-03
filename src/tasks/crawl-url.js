@@ -41,7 +41,7 @@ export default class CrawlUrl extends Task {
       $('a[href], link[href]').each((index, el) => {
         var href = $(el).attr('href');
         if (isEmpty(href) || $(el).attr('rel') == 'dns-prefetch') {
-          return next();
+          return;
         }
         self.handleFoundUrl({
           foundAtUrl: self.url,
@@ -54,7 +54,7 @@ export default class CrawlUrl extends Task {
       $('img[src], script[src]').each((index, el) => {
         var src = $(el).attr('src');
         if (isEmpty(src)) {
-          return next();
+          return;
         }
         self.handleFoundUrl({
           foundAtUrl: self.url,
