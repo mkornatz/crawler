@@ -47,7 +47,7 @@ export default class ConsoleOutputHandler {
     crawler
       .on(CrawlerEvents.URL_TEST_SUCCESS, this.testSuccess.bind(this))
       .on(CrawlerEvents.URL_TEST_ERROR, this.testError.bind(this))
-      .on(CrawlerEvents.URL_TEST_ERROR, this.urlFound.bind(this))
+      .on(CrawlerEvents.URL_FOUND, this.urlFound.bind(this))
       .on(CrawlerEvents.NOW_CRAWLING, this.crawlStart.bind(this));
   }
 
