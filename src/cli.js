@@ -10,7 +10,7 @@ command
   .option('-c, --concurrency <number>', 'number of crawler threads to allow concurrently', parseInt)
   .option('-d, --depth <number>', 'how many pages deep to crawl (0 = no limit)', parseInt)
   .option('--domains <domains>', 'comma-separated list of domains to allow in crawling', csvToArray)
-  .option('-c, --csvPath <outfile>', 'CSV Output Filepath', null)
+  .option('-c, --csv', 'Output results to a csv')
   .action(async (url, cmd) => {
     const crawler = new Crawler(url, {
       depth: cmd.depth || 0,
@@ -18,19 +18,13 @@ command
       crawlDomains: cmd.domains || [],
     });
 
-    // Add an output handler that listens to crawler events
-    const outputHandler = new ConsoleOutputHandler(crawler);
-
-    if (cmd.csvPath) {
-      const csvOutputHandler = new CsvOutputHandler(crawler, cmd.csvPath);
-    }
+    const outputHandlers = {
+      console: new ConsoleOutputHandler(crawler),
+      csv: cmd.csv ? new CsvOutputHandler(crawler) : null,
+    };
 
     await crawler.run();
 
-    outputHandler.summarize();
-
-    if (cmd.csvPath && typeof csvOutputHandler !== 'undefined') {
-      csvOutputHandler.summarize();
-    }
+    outputHandlers.forEach(handler => (handler ? handler.summarize() : null));
   })
   .parse(process.argv);

@@ -1,14 +1,15 @@
 import { createObjectCsvWriter } from 'csv-writer';
 import { CrawlerEvents } from '../crawler';
+import { getDomainFromUrl } from './utils/url';
 
 /**
  * A console based output handler, which listens to events from crawler and displays results to the console.
  * @param {} options
  */
 export default class CSVOutputHandler {
-  constructor(crawler, outfilePath) {
+  constructor(crawler) {
     this.writer = createObjectCsvWriter({
-      path: outfilePath,
+      path: `${getDomainFromUrl(crawler.url)}.csv`,
       header: [
         { id: 'url', title: 'URL' },
         { id: 'content-type', title: 'Content Type' },
