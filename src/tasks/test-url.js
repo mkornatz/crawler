@@ -38,6 +38,7 @@ export default class TestUrl extends Task {
           url: self.url,
           parentUrl: self.meta.parentUrl,
           error,
+          depth: self.meta.depth,
         });
         return next();
       }
@@ -58,6 +59,7 @@ export default class TestUrl extends Task {
           url: self.url,
           parentUrl: self.meta.parentUrl,
           response,
+          depth: self.meta.depth,
         });
         return next();
       }
@@ -73,6 +75,7 @@ export default class TestUrl extends Task {
       url: self.url,
       parentUrl: self.meta.parentUrl || 'base',
       response,
+      depth: self.meta.depth,
     });
 
     if (crawler.shouldCrawl(response, this)) {
