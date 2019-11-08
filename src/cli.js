@@ -12,17 +12,22 @@ command
   // .option('-i, --images', 'Whether to include images in the report')
   // .option('-f, --format <format>', 'Output format', 'text')
   .action(async (url, cmd) => {
-    const crawler = new Crawler(url, {
-      depth: cmd.depth || 0,
-      concurrency: cmd.concurrency || 10,
-      crawlDomains: cmd.domains || [],
-    });
+    try {
+      const crawler = new Crawler(url, {
+        depth: cmd.depth || 0,
+        concurrency: cmd.concurrency || 10,
+        crawlDomains: cmd.domains || [],
+      });
 
-    // Add an output handler that listens to crawler events
-    const outputHandler = new ConsoleOutputHandler(crawler);
+      // Add an output handler that listens to crawler events
+      const outputHandler = new ConsoleOutputHandler(crawler);
 
-    await crawler.run();
+      await crawler.run();
 
-    outputHandler.summarize();
+      outputHandler.summarize();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+    }
   })
   .parse(process.argv);

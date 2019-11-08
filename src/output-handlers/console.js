@@ -48,7 +48,8 @@ export default class ConsoleOutputHandler {
       .on(CrawlerEvents.URL_TEST_SUCCESS, this.testSuccess.bind(this))
       .on(CrawlerEvents.URL_TEST_ERROR, this.testError.bind(this))
       .on(CrawlerEvents.URL_FOUND, this.urlFound.bind(this))
-      .on(CrawlerEvents.NOW_CRAWLING, this.crawlStart.bind(this));
+      .on(CrawlerEvents.NOW_CRAWLING, this.crawlStart.bind(this))
+      .on(CrawlerEvents.CRAWL_ERROR, this.crawlError.bind(this));
   }
 
   // Handles "test.success" event
@@ -68,11 +69,13 @@ export default class ConsoleOutputHandler {
   // Handles "complete" event
   summarize() {
     this.logger.status(
-      `Finished.\n\n
-      Pages Crawled: ${this.counts['crawled']}
-      URLs Found (incl duplicates): ${this.counts['found']}
-      URLs Tested: ${this.counts['success']}
-      Errors: ${this.counts['errors']}
+      `Finished.\n
+      Crawl Summary
+      =============
+      Number of Pages Crawled: ${this.counts['crawled']}
+      Total URLs Found (incl duplicates): ${this.counts['found']}
+      Good URLs: ${this.counts['success']}
+      404s and Errors: ${this.counts['errors']}
       `
     );
   }
@@ -97,5 +100,9 @@ export default class ConsoleOutputHandler {
   crawlStart({ url }) {
     this.counts.crawled++;
     this.logger.crawl(`Crawling ${url}`);
+  }
+
+  crawlError({ url, error }) {
+    this.logger.error(`${url} | `, error);
   }
 }
